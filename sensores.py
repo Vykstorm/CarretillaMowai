@@ -17,7 +17,7 @@ import moway_input
 
 # Almacenar registros con las anteriores mediciones de cada sensor.
 MAX_LENGTH_SENSOR_REG = 4 # Número de mediciones consecutivas a almacenar por cada sensor.
-mediciones = dict(map(lambda sensor:(sensor, deque(maxlen=MAX_LENGTH_SENSOR_REG)), ['izq_central', 'izq_lateral', 'der_central', 'der_lateral']));
+mediciones = dict(map(lambda sensor:(sensor, deque(maxlen=MAX_LENGTH_SENSOR_REG)), ['izq_central', 'izq_lateral', 'der_central', 'der_lateral', 'color']));
 
 # Funciones que devuelve por cada sensor una lista de valores de sus anteriores mediciones, más
 # la medición actual de cada uno.
@@ -41,7 +41,13 @@ def _sensor_der_central():
 	valores = mediciones['der_lateral']
 	valores.appendleft(moway_input.sensor_der_lateral())
 	return valores
+
+def _sensor_color():
+	valores = mediciones['color']
+	valores.appendleft(moway_input.sensor_color())
+	return valores	
 	
+
 # Métodos para agregar una secuencia de mediciones consecutivas de un sensor y 
 # devolver un unico valor (que puede usarse para aproximar el valor real actual
 # del sensor)
@@ -98,7 +104,8 @@ def sensor_der_central_rectified():
 def sensor_der_lateral_rectified():
 	return agregar_mediciones(eliminar_outliers(_sensor_der_lateral()))
 
-
+def sensor_color_rectified():
+	return agregar_mediciones(eliminar_outliers(_sensor_color()))
 
 
 # Función para discretizar los valores de los sensores, en
@@ -106,7 +113,7 @@ def sensor_der_lateral_rectified():
 # 0 = bajo (cuando el sensor da una medición baja)
 # 1 = medio, (cuando el sensor da una medición intermedia)
 # 2 = alto, (cuando el sensor da una medición alta)
-def discretizar(vic, vil, vdc, vdl):
+def discretizar(vic, vil, vdc, vdl, vc):
         def discretizar_central(x):
                 if x >= .52:
                         return 2
@@ -119,17 +126,23 @@ def discretizar(vic, vil, vdc, vdl):
                 elif x <= 0.12:
                         return 0
                 return 1
-        return (discretizar_central(vic), discretizar_lateral(vil), discretizar_central(vdc), discretizar_lateral(vdl))
+        def discretizar_color(x):
+				if x >= 0.5:
+						return 2
+				elif x < 0.1:
+						return 0
+				return 1
+        return (discretizar_central(vic), discretizar_lateral(vil), discretizar_central(vdc), discretizar_lateral(vdl), discretizar_color(vc))
 # .72, .12
 
 # Se crea un hilo de ejecución asíncrono que vaya obteniendo información de los
 # sensores cada cierto tiempo. 		
 
-sensores = dict(zip(['izq_central', 'izq_lateral', 'der_central', 'der_lateral'], map(lambda x:x(), [sensor_izq_central_rectified, sensor_izq_lateral_rectified, sensor_der_central_rectified, sensor_der_lateral_rectified])))
+sensores = dict(zip(['izq_central', 'izq_lateral', 'der_central', 'der_lateral', 'color'], map(lambda x:x(), [sensor_izq_central_rectified, sensor_izq_lateral_rectified, sensor_der_central_rectified, sensor_der_lateral_rectified, sensor_color_rectified])))
 def actualizar_mediciones(update_time):
 	while True: 
 		with sensores_lock:
-			sensores.update(dict(zip(['izq_central', 'izq_lateral', 'der_central', 'der_lateral'], map(lambda x:x(), [sensor_izq_central_rectified, sensor_izq_lateral_rectified, sensor_der_central_rectified, sensor_der_lateral_rectified]))))
+			sensores.update(dict(zip(['izq_central', 'izq_lateral', 'der_central', 'der_lateral','color'], map(lambda x:x(), [sensor_izq_central_rectified, sensor_izq_lateral_rectified, sensor_der_central_rectified, sensor_der_lateral_rectified, sensor_color_rectified]))))
 		sleep(update_time / 1000.0)
 		
 	
@@ -167,9 +180,14 @@ def sensor_der_lateral():
                 valor = sensores['der_lateral']
         return valor
 
+def sensor_color():
+		with sensores_lock:
+				valor = sensores['color']
+		return valor
+
 def get_sensores():
         with sensores_lock:
-                valores = (sensores['izq_central'], sensores['izq_lateral'], sensores['der_central'], sensores['der_lateral'])
+                valores = (sensores['izq_central'], sensores['izq_lateral'], sensores['der_central'], sensores['der_lateral'], sensores['color'])
 	return valores
 
 

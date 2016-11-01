@@ -5,8 +5,6 @@
 # obtener información de los sensores (mÃ©todos wrapper)
 
 from moway_lib import moway
-# from mowaysim import moway
-
 
 
 
@@ -24,3 +22,6 @@ def sensor_der_central():
 	
 def sensor_der_lateral():
 	return moway.get_obs_side_right()/100.0;
+
+def sensor_color():
+	return (moway.get_line_right() + moway.get_line_left())/100.0;
