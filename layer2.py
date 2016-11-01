@@ -7,6 +7,5 @@
 
 
 def behaviour():
-	pass
+	ic, il, dc, dl, color = discretizar(*get_sensores())
 	
-

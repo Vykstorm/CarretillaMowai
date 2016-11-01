@@ -9,7 +9,7 @@ from sensores import get_sensores, discretizar
 
 
 def behaviour():
-	ic, il, dc, dl = discretizar(*get_sensores())
+	ic, il, dc, dl, color = discretizar(*get_sensores())
                 
 	if zona == 'esquina': # Comportamiento del robot en una esquina
 		if (ic == 2) or (dc == 2):
@@ -24,7 +24,12 @@ def behaviour():
 		else:
 				move()
 	elif zona == 'interseccion': # Comportamiento del robot en una intersección.
-		pass
+		if direccion == 'forward':
+			move()
+		elif direccion == 'left':
+			girar('left')
+		elif direccion == 'right':
+			girar('right')
           
                         
 # Variables auxiliares.
@@ -40,4 +45,5 @@ zona = 'esquina'
 # 'right' , en función de si debe tomar el camino de la izquierda, derecha o 
 # hacia delante.
 direccion = 'left'
+
 
