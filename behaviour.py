@@ -9,8 +9,9 @@ import motores, sensores
 import layer1, layer2
 
 try:
-	layer2.behaviour()
-	layer1.behaviour()
+	while True:
+		layer2.behaviour()
+		layer1.behaviour()
 except KeyboardInterrupt:
 	print 'Interrupción del teclado. Finalizando'
 	moway.close_moway()
