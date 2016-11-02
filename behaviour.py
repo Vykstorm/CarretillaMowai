@@ -10,8 +10,8 @@ import layer1, layer2
 
 try:
 	while True:
-		layer2.behaviour()
-		layer1.behaviour()
+		zona, direccion = layer2.behaviour()
+		layer1.behaviour(zona, direccion)
 except KeyboardInterrupt:
 	print 'Interrupción del teclado. Finalizando'
 	moway.close_moway()

@@ -24,4 +24,4 @@ def sensor_der_lateral():
 	return moway.get_obs_side_right()/100.0;
 
 def sensor_color():
-	return (moway.get_line_right() + moway.get_line_left())/100.0;
+	return min(moway.get_line_right() + moway.get_line_left(), 100)/100.0;

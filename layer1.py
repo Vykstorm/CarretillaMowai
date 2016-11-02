@@ -6,11 +6,12 @@
 
 from motores import cambiar_direccion, move, girar
 from sensores import get_sensores, discretizar
+from time import sleep
+from moway_lib import moway
 
-
-def behaviour():
+def behaviour(zona, direccion):
 	ic, il, dc, dl, color = discretizar(*get_sensores())
-                
+        
 	if zona == 'esquina': # Comportamiento del robot en una esquina
 		if (ic == 2) or (dc == 2):
 				girar(direccion)
@@ -31,19 +32,3 @@ def behaviour():
 		elif direccion == 'right':
 			girar('right')
           
-                        
-# Variables auxiliares.
-
-# Indica la zona en la que se encuentra el robot. En función de este el robot
-# seguirá un comportamiento u otro.
-zona = 'esquina'
-
-# Esta variable tiene varios usos. Si el robot se encuentra en una esquina,
-# esta debe indicar el sentido hacia donde debe girar el robot para seguir su
-# camino: Hacia la izquierda 'left' o hacia la derecha 'right'
-# Si el robot esta en una intersección, puede tomar los valores 'forward', 'left' o
-# 'right' , en función de si debe tomar el camino de la izquierda, derecha o 
-# hacia delante.
-direccion = 'left'
-
-
