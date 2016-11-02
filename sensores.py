@@ -32,12 +32,12 @@ def _sensor_izq_lateral():
 	valores.appendleft(moway_input.sensor_izq_lateral())
 	return valores
 	
-def _sensor_der_lateral():
+def _sensor_der_central():
 	valores = mediciones['der_central']
 	valores.appendleft(moway_input.sensor_der_central())
 	return valores
-	
-def _sensor_der_central():
+
+def _sensor_der_lateral():
 	valores = mediciones['der_lateral']
 	valores.appendleft(moway_input.sensor_der_lateral())
 	return valores
