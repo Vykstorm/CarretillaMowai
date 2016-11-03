@@ -18,102 +18,102 @@ ROBOT_ROTATION_AXIS = CENTER # Eje de giro del robot (CENTER o WHEEL)
 ROBOT_ROTATION_MAX_ANGLE = 5 # Angulo máximo de giro.
 ROBOT_ROTATION_DELAY = .2;
 
-# El siguiente mÃ©todo indica como debe ir cambiando de direcciÃ³n el 
-# robot a medida que se mueve hacia delante. Debe ser un valor en el intervalo
-# [-1 y 1], 
-# 0 indica que debe moverse hacia delante sin tener velocidad angular (sin giro)
-# -1 Indica que debe moverse lo mÃ¡ximo posible hacia la izquierda mientras se mueve
-# 1 Indica que debe moverse lo mÃ¡ximo posible hacia la derecha mientras se mueve.
-# Se aceptan valores intermedios en dicho intervalo
-def cambiar_direccion(cantidad):
-	global direccion
-	direccion = cantidad
-	with motores_lock: 
-		if movimiento_actual == 'forward':
-			cambiar_movimiento()
+
+# Esta clase representa una acción o una secuencia de movimientos del robot.
+# Solo puede haber una secuencia de movimientos activa al mismo tiempo
+class accion:
+	def __init__(self, lock):
+		self.lock = lock
 	
+	# Esta función se ejecuta múltiples veces mientras la acción siga activa.
+	# Debe finalizar su ejecución si el hilo invocador recibe una notificación.
+	def ejecutar(self):
+		pass
 	
-# Este mÃ©todo basicamente establece que el robot deba moverse hacia delante.
-def move():
-	global movimiento_actual
-	global ultimo_movimiento
-	with motores_lock:
-                ultimo_movimiento = movimiento_actual
-		movimiento_actual = "forward"
-		cambiar_movimiento()
+class forward(accion):
+	def __init__(self, lock):
+		accion.__init__(self, lock)
 	
-# Este mÃ©todo establece que el robot debe pararse y luego girarse en torno a su eje central bien a la derecha o a la izquierda,
-# segÃºn se indique en el parÃ¡metro ("left" or "right")
+	def ejecutar(self):
+		# Ejecutamos los comandos para movernos hacia delante.
+		moway.command_moway(CMD_STOP,0)
+		moway.command_moway(CMD_GO,0)
+		self.lock.wait()
+	
+class giro_izq(accion):
+	def __init__(self, lock):
+		accion.__init__(self, lock)
+		
+	def ejecutar(self):
+		# Ejecutamos los comandos para movernos hacia la izquierda.
+		moway.command_moway(CMD_STOP,0)
+		moway.set_rotation(ROBOT_ROTATION_MAX_ANGLE)
+		moway.set_rotation_axis(ROBOT_ROTATION_AXIS)
+		moway.set_speed(ROBOT_ROTATION_SPEED)
+		moway.command_moway(CMD_ROTATELEFT,0)
+		self.lock.wait(ROBOT_ROTATION_DELAY)
+	
+class giro_der(accion):
+	def __init__(self, lock):
+		accion.__init__(self, lock)
+	
+	def ejecutar(self):
+		# Ejecutamos los comandos para movernos hacia la derecha.
+		moway.command_moway(CMD_STOP,0)
+		moway.set_rotation(ROBOT_ROTATION_MAX_ANGLE)
+		moway.set_rotation_axis(ROBOT_ROTATION_AXIS)
+		moway.set_speed(ROBOT_ROTATION_SPEED)
+		moway.command_moway(CMD_ROTATERIGHT,0)
+		self.lock.wait(ROBOT_ROTATION_DELAY)
+
+class parado(accion):
+	def __init__(self, lock):
+		accion.__init__(self, lock)
+	
+	def ejecutar(self): 
+		moway.command_moway(CMD_STOP,0)
+		self.lock.wait()
+
+lock = Condition()
+
+# Esta variable indica la acción actual del robot.
+accion_actual = parado(lock)
+
+# Esta función auxiliar ejecuta los comandos correspondientes en base a cual 
+# sea la acción actual, de forma asíncrona.
+def ejecutar_acciones():
+	while True:
+		with lock:
+			accion_actual.ejecutar()
+
+start_new_thread(ejecutar_acciones, ())
+
+# Este método hará que el robot comienze a girar en una de las direcciones.
 def girar(sentido):
-	global movimiento_actual
-	global ultimo_movimiento
-	with motores_lock:
-                ultimo_movimiento = movimiento_actual
-		movimiento_actual = 'rotate_' + sentido
-		cambiar_movimiento()
+	global accion_actual
+	with lock:
+		if (sentido == 'left') and not isinstance(accion_actual, giro_izq):
+			accion_actual = giro_izq(lock)
+			lock.notify()
+		elif (sentido == 'right') and not isinstance(accion_actual, giro_der):
+			accion_actual = giro_der(lock)
+			lock.notify()
+	
+# Este método hara que el robot comienza a moverse hacia delante.
+def move():
+	global accion_actual
+	with lock:
+		if not isinstance(accion_actual, forward):
+			accion_actual = forward(lock)
+			lock.notify()
+
+# Este método mantendrá al robot parado.
+def stop():
+	global accion_actual
+	with lock:
+		if not isinstance(accion_actual, parado):
+			accion_actual = parado(lock)
+			lock.notify()
+	
 
 
-# EstÃ© mÃ©todo es invocado cuando el movimiento del robot debe cambiar. Esta rutina serÃ¡ la encargada de 
-# llamar a los comandos moway pertinentes para establecer la forma en la que debe ejecutarse la nueva secuencia de movimientos.
-def cambiar_movimiento():
-	#print 'Cambiando movimiento: ' + movimiento_actual
-        if movimiento_actual == 'forward':
-                
-                moway.set_speed(ROBOT_FORWARD_SPEED)
-                if direccion == 0:
-                        moway.command_moway(CMD_GO,0)
-                elif direccion < 0:
-                        moway.set_radius(int(round(abs(direccion)*100.0)))
-                        moway.command_moway(CMD_GOLEFT,0)
-                elif direccion > 0:
-                        moway.set_radius(int(round(abs(direccion)*100.0)))
-                        moway.command_moway(CMD_GORIGHT,0)
-        elif movimiento_actual == 'rotate_left':
-                pass
-        elif movimiento_actual == 'rotate_right':
-                pass
-
-        if ultimo_movimiento != movimiento_actual:
-                motores_lock.notify()
-
-
-def girar_izq():
-        motores_lock.acquire()
-        while movimiento_actual == 'rotate_left':
-                moway.command_moway(CMD_STOP,0)
-                moway.set_rotation(ROBOT_ROTATION_MAX_ANGLE)
-                moway.set_rotation_axis(ROBOT_ROTATION_AXIS)
-                moway.set_speed(ROBOT_ROTATION_SPEED)
-                moway.command_moway(CMD_ROTATELEFT,0)
-                motores_lock.wait(ROBOT_ROTATION_DELAY)
-                motores_lock.release()
-                #sleep(.1)
-                motores_lock.acquire()
-        motores_lock.release()
-
-def girar_der():
-        motores_lock.acquire()
-        while movimiento_actual == 'rotate_right':
-                moway.command_moway(CMD_STOP,0)
-                moway.set_rotation(ROBOT_ROTATION_MAX_ANGLE)
-                moway.set_rotation_axis(ROBOT_ROTATION_AXIS)
-                moway.set_speed(ROBOT_ROTATION_SPEED)
-                moway.command_moway(CMD_ROTATERIGHT,0)
-                motores_lock.wait(ROBOT_ROTATION_DELAY)
-                motores_lock.release()
-                #sleep(.1)
-                motores_lock.acquire()
-        motores_lock.release()
-
-def _girar():
-        while True:
-                girar_izq()
-                girar_der()
-        
-start_new_thread(_girar, ())
-
-                
-direccion = 0;
-movimiento_actual = "forward"; # Puede ser "forward", "rotate-left", "rotate-right"
-ultimo_movimiento = "";
-motores_lock = Condition()
