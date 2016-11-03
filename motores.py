@@ -36,9 +36,9 @@ class forward(accion):
 	
 	def ejecutar(self):
 		# Ejecutamos los comandos para movernos hacia delante.
-		moway.command_moway(CMD_STOP,0)
 		moway.command_moway(CMD_GO,0)
 		self.lock.wait()
+		moway.command_moway(CMD_STOP,0)
 	
 class giro_izq(accion):
 	def __init__(self, lock):
@@ -46,32 +46,30 @@ class giro_izq(accion):
 		
 	def ejecutar(self):
 		# Ejecutamos los comandos para movernos hacia la izquierda.
-		moway.command_moway(CMD_STOP,0)
 		moway.set_rotation(ROBOT_ROTATION_MAX_ANGLE)
 		moway.set_rotation_axis(ROBOT_ROTATION_AXIS)
 		moway.set_speed(ROBOT_ROTATION_SPEED)
 		moway.command_moway(CMD_ROTATELEFT,0)
 		self.lock.wait(ROBOT_ROTATION_DELAY)
-	
+		moway.command_moway(CMD_STOP,0)s
 class giro_der(accion):
 	def __init__(self, lock):
 		accion.__init__(self, lock)
 	
 	def ejecutar(self):
 		# Ejecutamos los comandos para movernos hacia la derecha.
-		moway.command_moway(CMD_STOP,0)
 		moway.set_rotation(ROBOT_ROTATION_MAX_ANGLE)
 		moway.set_rotation_axis(ROBOT_ROTATION_AXIS)
 		moway.set_speed(ROBOT_ROTATION_SPEED)
 		moway.command_moway(CMD_ROTATERIGHT,0)
 		self.lock.wait(ROBOT_ROTATION_DELAY)
+		moway.command_moway(CMD_STOP,0)
 
 class parado(accion):
 	def __init__(self, lock):
 		accion.__init__(self, lock)
 	
 	def ejecutar(self): 
-		moway.command_moway(CMD_STOP,0)
 		self.lock.wait()
 
 lock = Condition()
