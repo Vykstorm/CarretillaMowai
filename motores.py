@@ -51,7 +51,7 @@ class giro_izq(accion):
 		moway.set_speed(ROBOT_ROTATION_SPEED)
 		moway.command_moway(CMD_ROTATELEFT,0)
 		self.lock.wait(ROBOT_ROTATION_DELAY)
-		moway.command_moway(CMD_STOP,0)s
+		moway.command_moway(CMD_STOP,0)
 class giro_der(accion):
 	def __init__(self, lock):
 		accion.__init__(self, lock)
