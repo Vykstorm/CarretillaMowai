@@ -5,13 +5,13 @@
 # que zona se encuentra el robot (en un pasillo, zona o intersección) además
 
 from motores import cambiar_direccion, move, girar
-from sensores import get_sensores, discretizar
+from sensores import get_sensores, get_sensores_discretizados
 
 
 def behaviour():
         global _ic, _il, _dc, _dl
         global zona, direccion
-        ic, il, dc, dl, color = discretizar(*get_sensores())
+        ic, il, dc, dl, color = get_sensores_discretizados()
 
         if zona == 'pasillo':
                 if color == 2:
@@ -43,6 +43,6 @@ def behaviour():
 
 # Estas variables almacenan las mediciones de los sensores discretizadas
 # en el instante anterior
-_ic, _il, _dc, _dl, _ = discretizar(*get_sensores())
+_ic, _il, _dc, _dl, _ = get_sensores_discretizados()
 
 zona, direccion = 'pasillo', 'left'

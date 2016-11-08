@@ -5,12 +5,12 @@
 # con ningún obstáculo o pared.
 
 from motores import cambiar_direccion, move, girar
-from sensores import get_sensores, discretizar
+from sensores import get_sensores, get_sensores_discretizados
 from time import sleep
 from moway_lib import moway
 
 def behaviour(zona, direccion):
-	ic, il, dc, dl, color = discretizar(*get_sensores())
+	ic, il, dc, dl, color = get_sensores_discretizados()
         
 	if zona == 'esquina': # Comportamiento del robot en una esquina
 		if (ic == 2) or (dc == 2):
