@@ -30,7 +30,7 @@ else:
 			
 try:
 	# Creamos una ruta que deba seguir el robot.
-	R = ruta(['left', 'forward', 'left', 'right', 'forward']) 
+	R = ruta(['left', 'right', 'forward', 'left', 'right', 'forward', 'right']) 
 	
 	# Comenzamos a mover el robot
 	robot(R).ejecutar()

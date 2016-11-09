@@ -69,10 +69,11 @@ class robot(DTE):
 	def pasillo(self, ic, il, dc, dl, color, _ic, _il, _dc, _dl, *args):
 		if color == 2: 
 			self.cambiar_estado(self.interseccion)
-		elif (_il > 0) and (il == 0):
-			self.cambiar_estado(self.esquina_izq)
-		elif (_dl > 0) and (dl == 0):
-			self.cambiar_estado(self.esquina_der)
+		if (ic >= 1) and (dc >= 1):
+                        if (dl >= 1) and (il == 0):
+                                self.cambiar_estado(self.esquina_izq)
+                        elif (il >= 1) and (dl == 0):
+                                self.cambiar_estado(self.esquina_der)
 		else: 
 			if (ic == 2) or (il == 2):
 				girar('right')
