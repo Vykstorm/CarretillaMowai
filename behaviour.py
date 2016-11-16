@@ -5,7 +5,7 @@
 # finitos (para seguir una ruta específica)
 
 from sensores import get_sensores, get_sensores_discretizados
-from motores import move, girar
+from motores import move, girar, volver_atras
 
 # Las instancias de esta clase representan  máquinas de estados finitos.
 class DTE:
@@ -70,6 +70,8 @@ class robot(DTE):
 		if color == 2: 
 			self.cambiar_estado(self.interseccion)
 		if (ic >= 1) and (dc >= 1):
+                        if (ic == 2) and (dc == 2):
+                                self.cambiar_estado(self.bloqueado_pasillo)
                         if (dl >= 1) and (il == 0):
                                 self.cambiar_estado(self.esquina_izq)
                         elif (il >= 1) and (dl == 0):
@@ -118,3 +120,8 @@ class robot(DTE):
 			elif self.movimiento_actual == 'forward':
 				move()
 
+        # Estado bloqueado (obstaculo frontal en pasillo)
+        def bloqueado_pasillo(self, ic, il, dc, dl, color, *args):
+                volver_atras()
+                self.cambiar_estado(self.pasillo)
+                

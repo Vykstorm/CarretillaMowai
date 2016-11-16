@@ -72,6 +72,19 @@ class parado(accion):
 	def ejecutar(self): 
 		self.lock.wait()
 
+class vuelta_atras(accion):
+        def __init__(self, lock):
+                accion.__init__(self, lock)
+        def ejecutar(self):
+		# Ejecutamos los comandos para movernos hacia atrás
+		moway.set_rotation(180)
+		moway.set_rotation_axis(ROBOT_ROTATION_AXIS)
+		moway.set_speed(ROBOT_ROTATION_SPEED)
+		moway.command_moway(CMD_ROTATERIGHT,0)
+		#self.lock.wait()
+                moway.wait_mot_end(0)
+		moway.command_moway(CMD_STOP,0)   
+
 lock = Condition()
 
 # Esta variable indica la acción actual del robot.
@@ -114,4 +127,11 @@ def stop():
 			lock.notify()
 	
 
+# Este método da la vuelta al robot (cuando está atascado en un pasillo)
+def volver_atras():
+	global accion_actual
+	with lock:
+		if not isinstance(accion_actual, parado):
+			accion_actual = vuelta_atras(lock)
+			accion_actual.ejecutar()
 
