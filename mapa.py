@@ -4,7 +4,4 @@
 # Este script define una representación virtual del mapa, como un grafo.
 
 
-class nodo:
-        def __init__():
-                pass
-        
+
