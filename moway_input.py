@@ -25,3 +25,6 @@ def sensor_der_lateral():
 
 def sensor_color():
 	return min(moway.get_line_right() + moway.get_line_left(), 100)/100.0;
+
+def get_dist():
+        return moway.get_distance()
