@@ -28,13 +28,14 @@ class matriz:
 		return self.valores[i][:]
 			
 	def get_col(self, j):
-		return list(zip(self.valores)[j])
+		return map(lambda r:r[j], self.valores)
 		
 	def set_row(self, i, r):
 		self.valores[i] = r
 		
 	def set_col(self, j, r):
-		pass
+		for i in range(0, self.n):
+                        self.set(i,j, r[i])
 	
 	def __getitem__(self, indexes):
 		if type(indexes) == int:
@@ -52,5 +53,3 @@ class matriz:
 	def __str__(self):
 		return self.valores.__str__()
 
-m = matriz(3,3)
-print m[0][0]
