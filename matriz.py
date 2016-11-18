@@ -133,7 +133,7 @@ class matriz:
 		for i in range(0,self.n):
 			s = s + '|'
 			for j in range(0,self.m):
-				s = s + repr(self.get(i,j)).center(12)
+				s = s + repr(round(self.get(i,j), 4)).center(10)
 			s = s + ' |\n'
 		return s
 
