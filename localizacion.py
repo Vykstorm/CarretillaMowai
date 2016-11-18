@@ -31,28 +31,32 @@ def shift(p, x):
 # Esta función es igual que la anterior solo que lo hace para cada fila
 # de una matriz. Devuelve una matriz nueva con las probabilidades desplazadas.
 def shift_rows(p, x):
-        nr = map(lambda r:shift(r, x), [p.get_row(i) for i in range(0,p.get_rows())])
-        m = matriz(p.get_rows(), p.get_cols())
-        for i in range(p.get_rows()):
-                m.set_row(i,nr[i])
+        m = matriz(*p.get_size())
+        m.from_list(reduce(lambda x,y:x+y, map(lambda r:shift(r, x), p.get_rows()), []))
         return m
+        
 
 # Igual pero por columnas.
 def shift_cols(p, x):
-        nc = map(lambda c:shift(c, x), [p.get_col(j) for j in range(0,p.get_cols())])
-        m = matriz(p.get_rows(), p.get_cols())
-        for j in range(p.get_cols()):
-                m.set_col(j,nc[j])
-        return m  
+        m = matriz(*p.get_size())
+        for j, c in map(lambda j,r:(j,shift(r, x)), range(0,p.get_height()), p.get_cols()):
+			m.set_col(j, c)
+        return m
 
 ## Funciones para el calculo de probabilidades y la localización del robot.
 # Cada casilla tendrá asociada una probabilidad.
 # Estimaremos la posición actual del robot, busquando la casilla con mayor probabilidad.
 
 # Este método recalcula las probabilidades de las casillas (son probabilidades condicionales
-# que dependen de las variables observables, que son la distancia recorrida y el color)
-def recalcular(grid):
-        pass
+# que dependen de las variables observables)
+def recalcular(p):
+	ic, il, dc, dl, color = get_sensores_discretizados()
+	negro = (color == 2)
+	blanco = (color < 2)
+	
+	# Calculamos las probabilidades P(vB | C11), P(vB | C12), ...
+	pInv = 
+        
 def desplazar(grid):
         pass
 
@@ -60,7 +64,7 @@ def desplazar(grid):
 GRID_WIDTH = 3
 GRID_HEIGHT = 3
 grid = matriz(GRID_WIDTH, GRID_HEIGHT) # Esta matriz guarda las probabilidades de cada casilla
-color_grid = matriz(GRID_WIDTH, GRID_HEIGHT) # Esta matriz almacena el color de cada casilla
+color_grid = matriz(GRID_WIDTH, GRID_HEIGHT) # Esta matriz almacena el color real de cada casilla
 
 color_grid[0] = [1, 0, 1]
 color_grid[1] = [0, 1, 0]
@@ -68,9 +72,6 @@ color_grid[2] = [1, 0, 1]
 
 
 grid_lock = allocate_lock()
-
-
-
 
 POSITION_UPDATE_TIME = 1
 def actualiza_localizacion():
