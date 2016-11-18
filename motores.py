@@ -15,7 +15,7 @@ from time import sleep
 ROBOT_FORWARD_SPEED = 15 # Velocidad de movimiento del robot
 ROBOT_ROTATION_SPEED = 5 # Velocidad de giro estático del robot 
 ROBOT_ROTATION_AXIS = CENTER # Eje de giro del robot (CENTER o WHEEL)
-ROBOT_ROTATION_MAX_ANGLE = 5 # Angulo máximo de giro.
+ROBOT_ROTATION_MAX_ANGLE = 4 # Angulo máximo de giro.
 ROBOT_ROTATION_DELAY = .2;
 
 
@@ -83,7 +83,36 @@ class vuelta_atras(accion):
 		moway.command_moway(CMD_ROTATERIGHT,0)
 		#self.lock.wait()
                 moway.wait_mot_end(0)
-		moway.command_moway(CMD_STOP,0)   
+		moway.command_moway(CMD_STOP,0)
+
+
+class girar90_izq(accion):
+        def __init__(self, lock):
+                accion.__init__(self, lock)
+        def ejecutar(self):
+		# Ejecutamos los comandos para girar 90º a la izq
+		sleep(.5)
+		moway.set_rotation(90)
+		moway.set_rotation_axis(ROBOT_ROTATION_AXIS)
+		moway.set_speed(ROBOT_ROTATION_SPEED)
+		moway.command_moway(CMD_ROTATELEFT,0)
+		#self.lock.wait()
+                moway.wait_mot_end(0)
+		moway.command_moway(CMD_STOP,0)
+		
+class girar90_der(accion):
+        def __init__(self, lock):
+                accion.__init__(self, lock)
+        def ejecutar(self):
+		# Ejecutamos los comandos para girar 90º a la der
+		sleep(.5)
+		moway.set_rotation(90)
+		moway.set_rotation_axis(ROBOT_ROTATION_AXIS)
+		moway.set_speed(ROBOT_ROTATION_SPEED)
+		moway.command_moway(CMD_ROTATERIGHT,0)
+		#self.lock.wait()
+                moway.wait_mot_end(0)
+		moway.command_moway(CMD_STOP,0)		
 
 lock = Condition()
 
@@ -109,7 +138,17 @@ def girar(sentido):
 		elif (sentido == 'right') and not isinstance(accion_actual, giro_der):
 			accion_actual = giro_der(lock)
 			lock.notify()
-	
+
+# Este método hará que el robot gire 90º sobre la dirección indicada.
+def girar90(sentido):
+	global accion_actual
+	with lock:
+		if (sentido == 'left') and not isinstance(accion_actual, girar90_izq):
+			accion_actual = girar90_izq(lock)
+			accion_actual.ejecutar()
+		elif (sentido == 'right') and not isinstance(accion_actual, girar90_der):
+                        accion_actual = girar90_der(lock)
+                        accion_actual.ejecutar()
 # Este método hara que el robot comienza a moverse hacia delante.
 def move():
 	global accion_actual
@@ -131,7 +170,7 @@ def stop():
 def volver_atras():
 	global accion_actual
 	with lock:
-		if not isinstance(accion_actual, parado):
+		if not isinstance(accion_actual, vuelta_atras):
 			accion_actual = vuelta_atras(lock)
 			accion_actual.ejecutar()
 
