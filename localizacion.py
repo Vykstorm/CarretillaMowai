@@ -5,9 +5,19 @@
 
 
 from matriz import matriz
-from thread import start_new_thread, allocate_lock
+from thread import start_new_thread
+from threading import Condition
 from time import sleep
 from sensores import get_sensores_discretizados, get_dist_recorrida
+
+
+# Este método aplica un filtro laplaciando sobre una lista de valores númericos
+# enteros. Por ejemplo, si se le pasa [1 2 3], el método devolvería los valores
+# 1+1 / 6+3, 2+1 / 6+3, 3+1 / 6+3
+def laplace(v):
+        s = float(sum(v) + len(v))
+        return map(lambda x:x/s, map(lambda x:x+1, v))
+
 
 # Esta funcion calcula un conjunto de probabilidades condicionadas usando
 # el teorema de bayes sencillo.
@@ -47,44 +57,106 @@ def shift_cols(p, x):
 # Cada casilla tendrá asociada una probabilidad.
 # Estimaremos la posición actual del robot, busquando la casilla con mayor probabilidad.
 
+
+# Este método inicializa las probabilidades de las casillas. Debe indicarse la
+# posición del robot en el tablero. La probabilidad de dicha casilla será 1, y el
+# resto será cero, pero se aplicará un filtro laplaciano para suavizar los valores.
+# Después de invocar este método se actualizarán las probabilidades del tablero cada cierto
+# tiempo. También debe indicarse la dirección del movimiento del robot ['norte', 'sur', 'este', 'oeste']
+def iniciar_localizacion(i, j, direccion):
+        global grid, actualizar, direccion_movimiento
+        with grid_lock:
+                # Inicializamos la matriz de probabilidades
+                p = grid
+                p.from_list([0] * (p.get_width() * p.get_height()))
+                p[i,j] = 8
+                # Aplicamos filtro laplaciano
+                p.from_list(laplace(p.to_list()))
+
+                # Comenzamos a actualizar la matriz de probabilidades
+                actualizar = True
+                direccion_movimiento = direccion
+                grid_lock.notify()
+                
+
+
+# Para la localización del robot en el tablero (las probabilidades dejan de actualizarse).
+def parar_localizacion():
+        global actualizar
+        with grid_lock:
+                actualizar = False
+                grid_lock.notify()
+
 # Este método recalcula las probabilidades de las casillas (son probabilidades condicionales
 # que dependen de las variables observables)
-def recalcular(p):
+def recalcular():
+        global grid, color_grid
+        p = grid # Matriz con las probabilidades a priori
+        
 	ic, il, dc, dl, color = get_sensores_discretizados()
 	negro = (color == 2)
 	blanco = (color < 2)
 	
 	# Calculamos las probabilidades P(vB | C11), P(vB | C12), ...
-	pInv = 
+	pInv = p.map(lambda pPriori,i,j:0.8*(color_grid[i,j] == blanco)+0.1*(color_grid[i,j] != blanco))
+
+        # Calculamos la probabilidades P(C11 | vB), P(C12 |vB), ...
+        p.from_list(bayes(pInv.to_list(), p.to_list()))
+
+        print 'color: ' + repr(blanco)
+
+
+# Este método actualiza las probabilidades de las casillas (las desplaza), en base a la distancia
+# recorrida desde la ultima actualización.
+def desplazar():
+        global grid
+        p = grid
+        d = get_dist_recorrida()
         
-def desplazar(grid):
-        pass
+        u = 10*d / 150.0 # nº casillas recorridas desde la última actualización.
+        y = 0.2 # La incertidumbre de moverse una casilla hacia delante es del x%
+        x = min(u,1) * (1 - y)
 
+        if direccion_movimiento == 'este':
+                p = shift_rows(p, x)
 
+        for i in range(0, p.get_width()):
+                for j in range(0, p.get_height()):
+                        if p[i,j] == max(p.to_list()):
+                                print 'pos: ' + repr(i) + ", " + repr(j)
+        print repr(p)
+        
+# Estas variables establecen las dimensiones del tablero.
 GRID_WIDTH = 3
 GRID_HEIGHT = 3
-grid = matriz(GRID_WIDTH, GRID_HEIGHT) # Esta matriz guarda las probabilidades de cada casilla
-color_grid = matriz(GRID_WIDTH, GRID_HEIGHT) # Esta matriz almacena el color real de cada casilla
 
+# Esta matriz guarda las probabilidades de cada casilla
+grid = matriz(GRID_WIDTH, GRID_HEIGHT)
+
+# Esta matriz almacena el color real de cada casilla (1 blanco, 0 negro)
+color_grid = matriz(GRID_WIDTH, GRID_HEIGHT)
 color_grid[0] = [1, 0, 1]
 color_grid[1] = [0, 1, 0]
 color_grid[2] = [1, 0, 1]
 
-
-grid_lock = allocate_lock()
+grid_lock = Condition()
+actualizar = False
+direccion_movimiento = 'este'
 
 POSITION_UPDATE_TIME = 1
 def actualiza_localizacion():
         global grid
         while True:
+                grid_lock.acquire()
+                while not actualizar:
+                        grid_lock.wait()
                 with grid_lock:
                         # Recalculamos las probabilidades.
-                        grid = recalcular(grid)
+                        recalcular()
                         # Desplazamos las probabilidades.
-                        grid = desplazar(grid)
-                sleep(POSITION_UPDATE_TIME)
+                        desplazar()
+                        grid_lock.wait(POSITION_UPDATE_TIME)
 
 
 start_new_thread(actualiza_localizacion, ())
-
 
