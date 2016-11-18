@@ -35,6 +35,10 @@ class matriz:
 	def get_height(self):
 		return self.m
 		
+	# Devuelve el tamaño de la matriz
+	def get_size(self):
+		return (self.get_width(), self.get_height())
+		
 	# Devuelve el elemento en la posición (i,j)
 	def get(self, i,j):
 		if (i<0) or (i>=self.n) or (j<0) or (j>=self.m):
