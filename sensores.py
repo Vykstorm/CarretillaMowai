@@ -171,6 +171,6 @@ dist_recorrida = moway_input.get_dist()
 def get_dist_recorrida():
         global dist_recorrida
         dist = moway_input.get_dist() - dist_recorrida
-        dist_recorrida = dist
-        return dist_recorrida
+        dist_recorrida = moway_input.get_dist()
+        return dist
         
