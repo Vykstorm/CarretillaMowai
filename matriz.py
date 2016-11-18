@@ -4,7 +4,7 @@
 # Este script define una representación de una matriz.
 
 from exceptions import IndexError
-from copy import copy
+from copy import copy, deepcopy
 
 class matriz:
 	# Constructor.
@@ -28,11 +28,11 @@ class matriz:
 		return reduce(lambda x,y: x + y, self.valores,[])
 			
 	# Devuelve el num filas de la matriz
-	def get_rows(self):
+	def get_width(self):
 		return self.n
 		
 	# Devuelve el número de columnas de la matriz
-	def get_cols(self):
+	def get_height(self):
 		return self.m
 		
 	# Devuelve el elemento en la posición (i,j)
@@ -58,6 +58,14 @@ class matriz:
 		if (j<0) or (j>=self.m):
 			raise IndexError()
 		return map(lambda r:r[j], self.valores)
+		
+	# Devuelve una lista con las filas de la matriz
+	def get_rows(self):
+		return deepcopy(self.valores)
+		
+	# Devuelve una lista con las columnas de la matriz
+	def get_cols(self):
+		return [map(lambda r:r[j], self.valores) for j in range(0, self.m)]
 		
 	# Establece los valores de la fila i-ésima
 	def set_row(self, i, r):
