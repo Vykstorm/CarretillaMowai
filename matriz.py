@@ -100,9 +100,9 @@ class matriz:
 			if (i<0) or (i >= self.n):
 				raise IndexError()
 			return self.get_row(i)
+		i, j = indexes
 		if (i < 0) or (i >= self.n) or (j < 0) or (j >= self.m):
 			raise IndexError()
-		i, j = indexes
 		return self.get(i,j)
 	
 	# Operador de indexación-asignación
