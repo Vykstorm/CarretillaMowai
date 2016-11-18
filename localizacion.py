@@ -87,44 +87,25 @@ def parar_localizacion():
                 actualizar = False
                 grid_lock.notify()
 
+# Devuelve la posición estimada del robot en el tablero en base a las probabilidades actuales.
+def posicion_actual():
+        p = grid
+        with grid_lock:
+                m = reduce(lambda x,y:max(x,y), grid.to_list(),0)
+                pos = p.find(lambda x:(x == m))
+        return pos
+                
+
 # Este método recalcula las probabilidades de las casillas (son probabilidades condicionales
 # que dependen de las variables observables)
 def recalcular():
         global grid, color_grid
-        p = grid # Matriz con las probabilidades a priori
         
-	ic, il, dc, dl, color = get_sensores_discretizados()
-	negro = (color == 2)
-	blanco = (color < 2)
-	
-	# Calculamos las probabilidades P(vB | C11), P(vB | C12), ...
-	pInv = p.map(lambda pPriori,i,j:0.8*(color_grid[i,j] == blanco)+0.1*(color_grid[i,j] != blanco))
-
-        # Calculamos la probabilidades P(C11 | vB), P(C12 |vB), ...
-        p.from_list(bayes(pInv.to_list(), p.to_list()))
-
-        print 'color: ' + repr(blanco)
-
 
 # Este método actualiza las probabilidades de las casillas (las desplaza), en base a la distancia
 # recorrida desde la ultima actualización.
 def desplazar():
-        global grid
-        p = grid
-        d = get_dist_recorrida()
-        
-        u = 10*d / 150.0 # nº casillas recorridas desde la última actualización.
-        y = 0.2 # La incertidumbre de moverse una casilla hacia delante es del x%
-        x = min(u,1) * (1 - y)
-
-        if direccion_movimiento == 'este':
-                p = shift_rows(p, x)
-
-        for i in range(0, p.get_width()):
-                for j in range(0, p.get_height()):
-                        if p[i,j] == max(p.to_list()):
-                                print 'pos: ' + repr(i) + ", " + repr(j)
-        print repr(p)
+        pass
         
 # Estas variables establecen las dimensiones del tablero.
 GRID_WIDTH = 3
@@ -143,7 +124,7 @@ grid_lock = Condition()
 actualizar = False
 direccion_movimiento = 'este'
 
-POSITION_UPDATE_TIME = 1
+POSITION_UPDATE_TIME = .01
 def actualiza_localizacion():
         global grid
         while True:
@@ -154,9 +135,9 @@ def actualiza_localizacion():
                         # Recalculamos las probabilidades.
                         recalcular()
                         # Desplazamos las probabilidades.
-                        desplazar()
+                        # desplazar()
                         grid_lock.wait(POSITION_UPDATE_TIME)
 
-
 start_new_thread(actualiza_localizacion, ())
+
 
