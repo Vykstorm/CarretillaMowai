@@ -9,10 +9,10 @@ from copy import copy, deepcopy
 class matriz:
 	# Constructor.
 	# Inicializa una matriz nxm con ceros
-	def __init__(self, n, m):
+	def __init__(self, n, m, **kargs):
 		self.n = n
 		self.m = m
-		self.valores = map(lambda x:[x]*m, [0] * n) 
+		self.valores = map(lambda x:[x]*m, [0 if not 'init_value' in kargs else kargs['init_value']] * n) 
 			
 	# Construye una matriz a partir de una lista
 	# de valores. Si M es la matriz y L es la lista ->
@@ -140,7 +140,7 @@ class matriz:
 		for i in range(0,self.n):
 			s = s + '|'
 			for j in range(0,self.m):
-				s = s + repr(round(self.get(i,j), 4)).center(10)
+				s = s + (repr(round(self.get(i,j), 4)).center(10) if type(self.get(i,j)) == float else str(self.get(i,j)).center(10))
 			s = s + ' |\n'
 		return s
 
