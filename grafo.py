@@ -25,7 +25,16 @@ class grafo(mat):
 	# Conecta los nodos A y B. (A en dirección a B, con coste x).
 	# B puede ser una lista de nodos. En dicho caso, Se conecta A a cada uno
 	# de los indicados. A -> B1, A -> B2, ..., con costes X1, X2, ...
-	def connect(self,A,B,X):
+	# Si no se especifica el coste, se asigna coste 1 a las conexiones.
+	def connect(self,A,B,*args):
+		if len(args) == 0:
+			if type(B) == list:
+				X = [1] * len(B)
+			else:
+				X = 1
+		else: 
+			X = args[0]
+		
 		if ((type(B) != int) and (type(B) != list) and (type(B) != str)):
 			raise Exception()
 		if (type(B) == list) and ((type(X) != list) or (len(B) != len(X))):
@@ -45,7 +54,7 @@ class grafo(mat):
 	# Devuelve un valor booleano indicando si A está conectado con B
 	# (dirección a B).
 	def is_connected(self,A,B):
-		return (self.get(A,B) == None)
+		return (self.get(A,B) != None)
 		
 	# Comprueba si existe la conexión A->B y B->A
 	def is_fully_connected(self,A,B):
