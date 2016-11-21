@@ -165,12 +165,7 @@ def get_sensores_discretizados():
 		valores = map(lambda indice:sensores.get(indice).get_categoric_value(), indices)
 	return valores
 
-# Este método devuelve la distancia recorrida del robot en mm, desde la última
-# invocación del mismo.
-dist_recorrida = moway_input.get_dist()
+# Este método devuelve la distancia recorrida del robot en nº casillas.
 def get_dist_recorrida():
-        global dist_recorrida
-        dist = moway_input.get_dist() - dist_recorrida
-        dist_recorrida = moway_input.get_dist()
-        return dist
+        return moway_input.get_dist() / 150
         
