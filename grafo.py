@@ -60,6 +60,11 @@ class grafo(mat):
 	def is_fully_connected(self,A,B):
 		return self.is_connected(A,B) and self.is_connected(B,A)
 
+	# Devuelve todos los vecinos de un nodo dado.
+	def get_neighbours(self, A):
+		if not A in self.get_nodes():
+			raise Exception()
+		return filter(lambda B:self.is_connected(A,B),self.get_nodes())
 
 	def map(self, func):
 		otro = grafo(self.get_nodes())
