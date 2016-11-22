@@ -65,6 +65,10 @@ from matriz import mat
 from grafo import grafo
 
 
+
+
+
+###################################################################
 class f_mat(mat):
 	def __init__(self, n, m, format_func):
 		mat.__init__(self, n, m)
@@ -88,6 +92,10 @@ colores[1] = [1, 0, 1]
 colores[2] = [0, 1, 0]
 
 
+
+
+
+###################################################################
 # Las siguientes matrices almacenan los costes de ir de un nodo a otro nodo (son usadas
 # por el algoritmo de planificación de ruta de coste mínimo).
 # Habrá cuatro matrices. Cada una de ellas almacenará el coste de ir de un nodo a otro en 
@@ -98,29 +106,6 @@ colores[2] = [0, 1, 0]
 
 # Nodos del mapa
 nodos = ['A', 'B', 'C', 'N1', 'N2', 'N3', 'N4', 'N5','X11', 'X12', 'X13', 'X21', 'X22', 'X23', 'X31', 'X32', 'X33']
-
-# Posibles orientaciones del robot.
-orientaciones = ['este', 'oeste', 'norte', 'sur']
-
-# Posibles movimientos del robot 
-# (por ejemplo 'left' significa girar a la izquierda del nodo actual y seguir recto)
-acciones = ['left', 'right', 'forward', 'backward'] 
-
-# Casillas de los nodos del mapa (usando A como punto de origen, el este como eje X y el norte como eje Y)
-casillas = {'A':[0,0], 'B':[0,2], 'C':[5,5], 'N1':[2,1], 'N4':[2,5], 'N2':[0,3], 'N3':[4,3], 'N5':[5,3]}
-casillas.update([('X'+str(i+1)+str(j+1),[2+j,4-i]) for i in range(0,3) for j in range(0,3)])
-
-
-# Este es un método auxiliar que nos ayudará a crear la matriz de costes (calcula la distancia manhattan entre
-# dos nodos)
-def manhattan(p0, p1):
-	if type(p0) == str:
-		return manhattan(casillas[p0],p1)
-	if type(p1) == str:
-		return manhattan(p0, casillas[p1])
-	return sum(map(lambda v0,v1:abs(v1-v0), p0, p1))
-
-
 
 
 # El siguiente gráfo puede usarse para conocer la vecindad de cada nodo.
@@ -150,6 +135,10 @@ mapa.connect('X33', ['X32', 'X23'])
 # (este, oeste, norte, sur), el movimiento necesario para ir de un nodo a 
 # cada uno de sus vecinos. 
 
+# Posibles movimientos del robot 
+acciones = ['left', 'right', 'forward', 'backward'] 
+
+
 # Orientación ESTE
 m_este = grafo(nodos)
 
@@ -162,18 +151,28 @@ m_norte = grafo(nodos)
 # Orientación SUR
 m_sur = grafo(nodos)
 
-
-# Este diccionario almacena los anteriores gráfos.
-# Si estamos en el nodo A y queremos calcular el siguiente movimiento para
-# dirigirnos al nodo vecino B, dada la orientación X del robot.
-# El siguiente movimiento podrá obtenerse de la siguiente forma:
-# movimientos[X].get(A,B)
 movimientos = {'este':m_este, 'oeste':m_oeste, 'norte':m_norte, 'sur':m_sur}
 
 
+###################################################################
 # Los siguientes gráfos definen para cada orientación posible del robot 
 # (este, oeste, norte, sur), el coste del movimiento necesario para ir de
 # un nodo a otro.
+
+# Posición (x,y) de los nodos del mapa (usando A como punto de origen, el este como eje X y el norte como eje Y)
+casillas = {'A':[0,0], 'B':[0,2], 'C':[5,5], 'N1':[2,1], 'N4':[2,5], 'N2':[0,3], 'N3':[4,3], 'N5':[5,3]}
+casillas.update([('X'+str(i+1)+str(j+1),[2+j,4-i]) for i in range(0,3) for j in range(0,3)])
+
+
+# Este es un método auxiliar que nos ayudará a crear las matrices de costes (calcula la distancia manhattan entre
+# dos nodos)
+def manhattan(p0, p1):
+	if type(p0) == str:
+		return manhattan(casillas[p0],p1)
+	if type(p1) == str:
+		return manhattan(p0, casillas[p1])
+	return sum(map(lambda v0,v1:abs(v1-v0), p0, p1))
+
 
 # Orientación ESTE
 c_este = grafo(nodos)
@@ -190,14 +189,30 @@ c_sur = grafo(nodos)
 costes = {'este':c_este, 'oeste':c_oeste, 'norte':c_norte, 'sur':c_sur}
 
 
-
-# Código de depuración para verificar las matrices de costes y movimientos.
+###################################################################
+# Código de depuración para verificar las matrices anteriores.
 if __name__ == '__main__':
+	# Verificamos las matrices de movimientos
 	for k,m in movimientos.iteritems():
-		if len([(A,B) for A in nodos for B in nodos if mapa.is_fully_connected(A,B) and not m.is_fully_connected(A,B)]) > 0:
-			raise Exception()
+		try:
+			if len([(A,B) for A in nodos for B in nodos if mapa.is_fully_connected(A,B) and not m.is_fully_connected(A,B)]) > 0:
+				raise Exception()
+			if len([(A,B) for A in nodos for B in nodos if not mapa.is_fully_connected(A,B) and m.is_fully_connected(A,B)]) > 0:
+				raise Exception()
+			if len([(A,B) for A in nodos for B in nodos if m.is_fully_connected(A,B) and (not m.get(A,B) in acciones)]) > 0:
+				raise Exception()
+		except:
+			raise Exception("Matriz de movimientos " + k + " no valida") 
+	# Verificamos las matrices de costes.
 	for k,c in costes.iteritems():
-		if len([(A,B) for A in nodos for B in nodos if mapa.is_fully_connected(A,B) and not c.is_fully_connected(A,B)]) > 0:
-			raise Exception()
+		try:
+			if len([(A,B) for A in nodos for B in nodos if mapa.is_fully_connected(A,B) and not c.is_fully_connected(A,B)]) > 0:
+				raise Exception()
+			if len([(A,B) for A in nodos for B in nodos if not mapa.is_fully_connected(A,B) and c.is_fully_connected(A,B)]) > 0:
+				raise Exception()
+			if len([(A,B) for A in nodos for B in nodos if c.is_fully_connected(A,B) and ((not type(c.get(A,B)) in [float, int]) or (c.get(A,B) < 0))]) > 0:
+				raise Exception()
+		except:
+			raise Exception("Matriz de costes " + k + " no valida")
 			
 	

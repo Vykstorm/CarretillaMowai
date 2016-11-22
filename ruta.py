@@ -10,6 +10,10 @@ from mapa import movimientos, mapa, nodos, orientaciones
 
 # Esta clase representa un estado del robot.
 # ESTADO = NODO + ORIENTACIÓN
+
+# Posibles orientaciones del robot.
+orientaciones = ['este', 'oeste', 'norte', 'sur']
+
 class estado:
 	def __init__(self, nodo, orientacion):
 		if (not nodo in nodos) or (not orientacion in orientaciones):
