@@ -6,17 +6,15 @@
 # llegar al final de la misma.
 
 from collections import deque
-from mapa import movimientos, mapa, nodos, orientaciones
+from sets import Set
+from mapa import *
 
 # Esta clase representa un estado del robot.
 # ESTADO = NODO + ORIENTACIÓN
 
-# Posibles orientaciones del robot.
-orientaciones = ['este', 'oeste', 'norte', 'sur']
-
 class estado:
 	def __init__(self, nodo, orientacion):
-		if (not nodo in nodos) or (not orientacion in orientaciones):
+		if (not nodo in nodos) or (not orientacion in cardinales):
 			raise Exception()
 		self.nodo = nodo
 		self.orientacion = orientacion
@@ -32,7 +30,15 @@ class estado:
 		
 	def __repr__(self):
 		return repr(self.__str__())
-
+		
+		
+	def __eq__(self, otro):
+		return (self.nodo == otro.nodo) and (self.orientacion == otro.orientacion)
+		
+	def __hash__(self):
+		return hash(self.nodo + self.orientacion)
+		
+E = estado
 
 # Esta clase representa una ruta que debe seguir un robot para desplazarse
 # de un nodo a otro.
@@ -40,6 +46,7 @@ class ruta:
 	# Constructor. Se le indica los estados del robot por los que debe pasar
 	# para recorrer el camino marcado por la ruta.
 	def __init__(self, estados):
+		self.estados = estados
 		self.movimientos = deque(self.calcular_movimientos(estados))
 	
 	# Este método calcula el conjunto de movimientos secuenciales que debe
@@ -52,7 +59,6 @@ class ruta:
 				A = estados[0].get_nodo()
 				B = estados[1].get_nodo()
 				orientacion = estados[0].get_orientacion()
-				print A,B
 				if not movimientos[orientacion].is_connected(A,B):
 					raise Exception()
 				return [movimientos[orientacion].get(A,B)]
@@ -68,7 +74,13 @@ class ruta:
 		self.movimientos.popleft()
 		return movimiento
 
+	def __str__(self):
+		return str(self.estados)
 
+	def __repr__(self):
+		if len(self.movimientos) == 0:
+			return ''
+		return reduce(lambda x,y:x+' -> '+repr(y), self.estados[1:], repr(self.estados[0]))
 
 
 
@@ -76,11 +88,13 @@ class ruta:
 # de coste mínimo entre dos nodos cualesquiera del mapa.
 
 class planificador_ruta:
-	# Constructor: Toma como parámetro dos nodos AyB 
-	def __init__(self, A, B):
-		if (not A in nodos or not B in nodos):
-			raise Exception()
-		self.estados = self.calcular_ruta(A,B)
+	# Constructor: Toma como parámetro dos nodos AyB y la orientación inicial en el nodo de 
+	# inicio A
+	# Es decir, el estado inicial es el par (A, orientación).
+	# El conjunto de estados finales son: (B, *), es decir, cualquier estado con el nodo B
+	# pero cualquier orientación.
+	def __init__(self, A, B, orientacion):
+		self.estados = self.calcular_ruta(A,B,orientacion)
 		
 	# Esta rutina debe devolver la ruta de coste mínimo entre A y B
 	def calcular_ruta(self, A, B):
@@ -96,10 +110,92 @@ class planificador_ruta:
 # Esta clase representa el algoritmo A* para el calculo de la ruta de coste 
 # mínimo entre dos nodos.
 class planificador_Aestrella(planificador_ruta):
-	def __init__(self, A, B):
-		planificador_ruta.__init__(self, A, B)
+	def __init__(self, *args):
+		planificador_ruta.__init__(self, *args)
 		
 	# Implementación del A*
-	def calcular_ruta(self, A, B): 
-		# TODO
-		pass
+	def calcular_ruta(self, A, B, orientacion): 
+		return Aestrella(A,B,orientacion)
+		
+		
+		
+		
+# Métodos auxiliares para el Algoritmo A*
+# Heuristica de coste de un estado X, sabiendo que el nodo destino es A 
+def H(X,A): 
+	return dist_manhattan(X.get_nodo(), A)
+	 
+# Devuelve los estados vecinos de X
+def V(X):
+#	return map(lambda B:E(B,orientaciones.get(X.get_nodo(),B)) mapa.get_neighbours(X.get_nodo()))
+	return map(lambda B:E(B,'este'), mapa.get_neighbours(X.get_nodo()))
+
+# Coste de ir de un estado X a un estado Y
+def C(X,Y):
+#	return costes[X.get_orientacion()].get(X.get_nodo(),Y.get_nodo())
+	return costes['este'].get(X.get_nodo(),Y.get_nodo())
+	
+# Comprueba si el estado X es un estado final, sabiendo que el nodo A es el
+# nodo destino
+def F(X,A):
+	return X.get_nodo() == A
+
+# Implementación del algoritmo Aestrella
+def Aestrella(A,B,orientacion):
+	# Inicializamos la lista de abiertos y cerrados.
+	abiertos = Set()
+	cerrados = Set()
+	fAbiertos = dict() # Contiene las evaluaciones de coste+heurística de los estados en abiertos.
+	fCerrados = dict() # Igual pero para los estados cerrados
+	
+	# Creamos el nodo inicial
+	inicio = E(A,orientacion) 
+	
+	# Añadimos el nodo inicial a abiertos
+	abiertos.add(inicio)
+	fAbiertos[inicio] = 0
+	
+	# Mientras abiertos no este vacío.
+	while len(abiertos) > 0:
+		# Obtener nodo en abiertos con menor coste+heurística.
+		m = min(fAbiertos.values())
+		N = filter(lambda x:x[1] == m, fAbiertos.iteritems())[0][0]
+
+		# Si N es estado final, hemos acabado...
+		if F(N,B):
+			break
+		
+		# Eliminamos N de abiertos y lo añadimos a cerrados.
+		abiertos.remove(N)
+		cerrados.add(N)
+		fCerrados[N] = fAbiertos[N]
+		del fAbiertos[N]
+		
+		# Obtenemos los sucesores de N
+		sucesores = V(N)
+		
+		# Por cada sucesor...
+		for S in sucesores:
+			# Calcular coste+heurística del sucesor
+			fs = C(N,S) + H(S,B)
+			
+			# Si el sucesor ya está en abiertos o en cerrados, y es un nodo mejor, 
+			# añadirlo a abiertos y eliminar apariciones del mismo en abiertos y cerrados.
+			# Si no es mejor, descartarlo.
+			if ((S in abiertos) and (fAbiertos[S] <= fs)) or ((S in cerrados) and (fCerrados[S] <= fs)):
+				continue
+			
+			# Eliminar apariciones del sucesor en abiertos y en cerrados
+			if (S in abiertos):
+				abiertos.remove(S)
+				del fAbiertos[S]
+			if (S in cerrados):
+				cerrados.remove(S)
+				del fCerrados[S]
+			
+			# Añadir el sucesor a abiertos
+			abiertos.add(S)
+			fAbiertos[S] = fs
+	
+	print cerrados
+Aestrella('N1','N2','este')
