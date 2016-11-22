@@ -170,8 +170,6 @@ m_este.connect('X31', ['X21', 'X32'], ['L', 'F'])
 m_este.connect('X32', ['X31', 'X22', 'X33', 'N1'], ['B', 'L', 'F', 'R'])
 m_este.connect('X33', ['X32', 'X23'], ['B', 'L'])
 
-
-
 # Orientación OESTE
 m_oeste = grafo(nodos)
 
@@ -181,7 +179,9 @@ m_norte = grafo(nodos)
 # Orientación SUR
 m_sur = grafo(nodos)
 
-movimientos = {'este':m_este, 'oeste':m_oeste, 'norte':m_norte, 'sur':m_sur}
+
+abrv = {'L':'left', 'R':'right', 'B':'backward', 'F':'forward'}
+movimientos = dict(zip(['este', 'oeste', 'norte', 'sur'], map(lambda m:m.map(lambda v,i,j:None if (v==None) or (not v in abrv) else abrv[v]), [m_este, m_oeste, m_norte, m_sur])))
 
 
 ###################################################################
@@ -193,6 +193,9 @@ movimientos = {'este':m_este, 'oeste':m_oeste, 'norte':m_norte, 'sur':m_sur}
 casillas = {'A':[0,0], 'B':[0,2], 'C':[5,5], 'N1':[2,1], 'N4':[2,5], 'N2':[0,3], 'N3':[4,3], 'N5':[5,3]}
 casillas.update([('X'+str(i+1)+str(j+1),[2+j,4-i]) for i in range(0,3) for j in range(0,3)])
 
+# Penalizaciones en los giros..
+COSTE_GIRO_ESQUINA = 3 # Coste de doblar una esquina.
+COSTE_GIRO_NODO = 2 # Coste de girar 90º en un nodo
 
 # Este es un método auxiliar que nos ayudará a crear las matrices de costes (calcula la distancia manhattan entre
 # dos nodos)
@@ -205,7 +208,27 @@ def manhattan(p0, p1):
 
 
 # Orientación ESTE
+cge, cgn,d = COSTE_GIRO_ESQUINA, COSTE_GIRO_NODO, manhattan
 c_este = grafo(nodos)
+c_este.connect('A', ['N1', 'N5'], [cgn+cge+d('A','N1'), d('A','N5')+cge])
+c_este.connect('B', 'N2', cgn+d('B','N2'))
+c_este.connect('C', 'N5', cgn+d('C','N5'))
+c_este.connect('N1', ['A', 'N3', 'X32'], [2*cgn+d('N1', 'A'), d('N1', 'N3')+cge, cgn+1])
+c_este.connect('N2', ['B', 'N4', 'X21'], [cgn+d('N2','B'), cgn+d('N2','N4')+cge, 1])
+c_este.connect('N3', ['N4', 'N1', 'N5'], [cgn+d('N3', 'N4')+cge, cgn+d('N3','N1')+cge, 1])
+c_este.connect('N4', ['N2', 'N3', 'X12'], [2*cgn+d('N4', 'N2')+cge, d('N4','N3')+cge, cgn+1])
+c_este.connect('N5', ['N3', 'C', 'A'], [2*cgn+1, cgn+d('N5','C'), cgn+d('N5','A')+cge])
+c_este.connect('X11', ['X12', 'X21'], [1, cgn+1])
+c_este.connect('X12', ['X11', 'X22', 'X13', 'N4'], [2*cgn+1, cgn+1, 1, cgn+1])
+c_este.connect('X13', ['X12', 'X23'], [2*cgn, cgn+1])
+c_este.connect('X21', ['X11', 'X31', 'X22', 'N2'], [cgn+1,cgn+1,1,2*cgn+1])
+c_este.connect('X22', ['X21', 'X12', 'X23', 'X32'], [2*cgn+1, cgn+1, 1, cgn+1])
+c_este.connect('X23', ['X13', 'X22', 'X33'], [cgn+1, 2*cgn+1, cgn+1])
+c_este.connect('X31', ['X21', 'X32'], [cgn+1, 1])
+c_este.connect('X32', ['X31', 'X22', 'X33', 'N1'], [2*cgn+1,cgn+1,1,cgn+1])
+c_este.connect('X33', ['X32', 'X23'], [2*cgn+1,cgn+1])
+
+
 
 # Orientación OESTE
 c_oeste = grafo(nodos)
