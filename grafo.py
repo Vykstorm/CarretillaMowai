@@ -61,6 +61,11 @@ class grafo(mat):
 		return self.is_connected(A,B) and self.is_connected(B,A)
 
 
+	def map(self, func):
+		otro = grafo(self.get_nodes())
+		otro.from_list(mat.map(self, func).to_list())
+		return otro
+
 	def __str__(self):
 		return mat.__str__(self)
 		

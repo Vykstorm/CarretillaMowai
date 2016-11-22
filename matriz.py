@@ -89,12 +89,12 @@ class matriz:
 		otra.from_list(map(lambda v,pos:func(v,*pos),  self.to_list(), [(i,j) for i in range(0,self.n) for j in range(0,self.m)] ))
 		return otra
 
-        # Este método busca un elemento de la matriz que cumpla una condición.
-        def find(self, cond):
-                for i in range(0, self.n):
-                        for j in range(0, self.m):
-                                if cond(self.get(i,j)):
-                                        return (i,j)
+	# Este método busca un elemento de la matriz que cumpla una condición.
+	def find(self, cond):
+			for i in range(0, self.n):
+					for j in range(0, self.m):
+							if cond(self.get(i,j)):
+									return (i,j)
 	
 	# Devuelve el número de elementos totales de la matriz (nxm)
 	def __len__(self):

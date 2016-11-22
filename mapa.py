@@ -138,9 +138,39 @@ mapa.connect('X33', ['X32', 'X23'])
 # Posibles movimientos del robot 
 acciones = ['left', 'right', 'forward', 'backward'] 
 
+	#			N4			
+	###########		#############
+	#	X11		X12		X13		#
+	#							#
+#N2		X21		X22		X23		#
+	#							#
+	#	X31		X32		X33		#
+	###########		#############
+	#			N1				#
+
+
 
 # Orientación ESTE
 m_este = grafo(nodos)
+m_este.connect('A', ['N1', 'N5'], ['L', 'F'])
+m_este.connect('B', 'N2', 'L')
+m_este.connect('C', 'N5', 'R')
+m_este.connect('N1', ['A', 'N3', 'X32'], ['B', 'F', 'L'])
+m_este.connect('N2', ['B', 'N4', 'X21'], ['R', 'L', 'F'])
+m_este.connect('N3', ['N4', 'N1', 'N5'], ['L', 'R', 'F'])
+m_este.connect('N4', ['N2', 'N3', 'X12'], ['B', 'F', 'R'])
+m_este.connect('N5', ['N3', 'C', 'A'], ['B', 'L', 'R'])
+m_este.connect('X11', ['X12', 'X21'], ['F', 'R'])
+m_este.connect('X12', ['X11', 'X22', 'X13', 'N4'], ['B', 'R', 'F', 'L'])
+m_este.connect('X13', ['X12', 'X23'], ['B', 'R'])
+m_este.connect('X21', ['X11', 'X31', 'X22', 'N2'], ['L', 'R', 'F', 'B'])
+m_este.connect('X22', ['X21', 'X12', 'X23', 'X32'], ['B', 'L', 'F', 'R'])
+m_este.connect('X23', ['X13', 'X22', 'X33'], ['L', 'B', 'R'])
+m_este.connect('X31', ['X21', 'X32'], ['L', 'F'])
+m_este.connect('X32', ['X31', 'X22', 'X33', 'N1'], ['B', 'L', 'F', 'R'])
+m_este.connect('X33', ['X32', 'X23'], ['B', 'L'])
+
+
 
 # Orientación OESTE
 m_oeste = grafo(nodos)
