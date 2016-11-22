@@ -59,9 +59,10 @@ class ruta:
 				A = estados[0].get_nodo()
 				B = estados[1].get_nodo()
 				orientacion = estados[0].get_orientacion()
-				if not movimientos[orientacion].is_connected(A,B):
-					raise Exception()
-				return [movimientos[orientacion].get(A,B)]
+#				if not movimientos[orientacion].is_connected(A,B):
+#					raise Exception()
+#				return [movimientos[orientacion].get(A,B)]
+				return [movimientos['este'].get(A,B)]
 		else: # Hay un estado o ninguno.
 			return []
 		
@@ -130,6 +131,11 @@ def V(X):
 #	return map(lambda B:E(B,orientaciones.get(X.get_nodo(),B)) mapa.get_neighbours(X.get_nodo()))
 	return map(lambda B:E(B,'este'), mapa.get_neighbours(X.get_nodo()))
 
+# Comprueba si Y es vecino de X.
+def isV(X,Y):
+#	return mapa.is_connected(X.get_nodo(),Y.get_nodo()) and (Y.get_orientacion() == orientaciones.get(X.get_nodo(),Y.get_nodo()))
+	return mapa.is_connected(X.get_nodo(),Y.get_nodo())
+
 # Coste de ir de un estado X a un estado Y
 def C(X,Y):
 #	return costes[X.get_orientacion()].get(X.get_nodo(),Y.get_nodo())
@@ -163,6 +169,7 @@ def Aestrella(A,B,orientacion):
 
 		# Si N es estado final, hemos acabado...
 		if F(N,B):
+			cerrados.add(N)
 			break
 		
 		# Eliminamos N de abiertos y lo añadimos a cerrados.
@@ -197,5 +204,23 @@ def Aestrella(A,B,orientacion):
 			abiertos.add(S)
 			fAbiertos[S] = fs
 	
-	print cerrados
-Aestrella('N1','N2','este')
+	# Hemos tenido éxito en la búsqueda?
+	if len(filter(lambda X:F(N,B),cerrados)) == 0:
+		raise Exception() # Búsqueda no exitosa
+		
+		
+	# Reorganizamos los estados.
+	ruta = []
+	actual = inicio
+	ruta.append(actual)
+	cerrados.remove(actual)
+	while len(cerrados) > 0:
+		actual = filter(lambda X:isV(actual,X), cerrados)
+		if len(actual)==0:
+			raise Exception()
+		actual = actual[0]
+		ruta.append(actual)
+		cerrados.remove(actual)
+
+	return ruta
+	
