@@ -133,7 +133,8 @@ mapa.connect('X33', ['X32', 'X23'])
 
 # Los siguientes gráfos definen para cada orientación posible del robot
 # (este, oeste, norte, sur), el movimiento necesario para ir de un nodo a 
-# cada uno de sus vecinos. 
+# cada uno de sus vecinos.
+# destino.
 
 # Posibles movimientos del robot 
 acciones = ['left', 'right', 'forward', 'backward'] 
@@ -184,6 +185,51 @@ abrv = {'L':'left', 'R':'right', 'B':'backward', 'F':'forward'}
 movimientos = dict(zip(['este', 'oeste', 'norte', 'sur'], map(lambda m:m.map(lambda v,i,j:None if (v==None) or (not v in abrv) else abrv[v]), [m_este, m_oeste, m_norte, m_sur])))
 
 
+
+###################################################################
+# Los siguientes gráfos definen para cada orientación posible del robot
+# (este, oeste, norte, sur), la orientación final del robot al llegar a un
+# nodo, partiendo de otro nodo vecino.
+
+# Posibles orientaciones del robot.
+cardinales = ['este', 'oeste', 'norte', 'sur']
+
+# Orientación ESTE
+o_este = grafo(nodos)
+o_este.connect('A', ['N1', 'N5'], ['E', 'N'])
+o_este.connect('B', 'N2', 'N')
+o_este.connect('C', 'N5', 'S')
+o_este.connect('N1', ['A', 'N3', 'X32'], ['S', 'N', 'N'])
+o_este.connect('N2', ['B', 'N4', 'X21'], ['S', 'E', 'E'])
+o_este.connect('N3', ['N4', 'N1', 'N5'], ['O', 'O', 'E'])
+o_este.connect('N4', ['N2', 'N3', 'X12'], ['S', 'S', 'S'])
+o_este.connect('N5', ['N3', 'C', 'A'], ['O', 'N', 'O'])
+o_este.connect('X11', ['X12', 'X21'], ['E', 'S'])
+o_este.connect('X12', ['X11', 'X22', 'X13', 'N4'], ['O', 'S', 'E', 'N'])
+o_este.connect('X13', ['X12', 'X23'], ['O', 'S'])
+o_este.connect('X21', ['X11', 'X31', 'X22', 'N2'], ['N', 'S', 'E', 'O'])
+o_este.connect('X22', ['X21', 'X12', 'X23', 'X32'], ['O', 'N', 'E', 'S'])
+o_este.connect('X23', ['X13', 'X22', 'X33'], ['N', 'O', 'S'])
+o_este.connect('X31', ['X21', 'X32'], ['N', 'E'])
+o_este.connect('X32', ['X31', 'X22', 'X33', 'N1'], ['O', 'N', 'E', 'S'])
+o_este.connect('X33', ['X32', 'X23'])
+
+# Orientación OESTE
+o_oeste = grafo(nodos)
+
+# Orientación NORTE
+o_norte = grafo(nodos)
+
+# Orientación SUR
+o_sur = grafo(nodos)
+
+
+abrv = {'E':'este', 'O':'oeste', 'sur':'S', 'N':'norte'}
+orientaciones = dict(zip(['este', 'oeste', 'norte', 'sur'], map(lambda m:m.map(lambda v,i,j:None if (v==None) or (not v in abrv) else abrv[v]), [o_este, o_oeste, o_norte, o_sur])))
+
+
+
+
 ###################################################################
 # Los siguientes gráfos definen para cada orientación posible del robot 
 # (este, oeste, norte, sur), el coste del movimiento necesario para ir de
@@ -205,7 +251,7 @@ def manhattan(p0, p1):
 	if type(p1) == str:
 		return manhattan(p0, casillas[p1])
 	return sum(map(lambda v0,v1:abs(v1-v0), p0, p1))
-
+dist_manhattan = manhattan
 
 # Orientación ESTE
 cge, cgn,d = COSTE_GIRO_ESQUINA, COSTE_GIRO_NODO, manhattan
@@ -267,5 +313,14 @@ if __name__ == '__main__':
 				raise Exception()
 		except:
 			raise Exception("Matriz de costes " + k + " no valida")
-			
-	
+	# Verificamos las matrices de orientaciones
+	for k,o in costes.iteritems():
+		try:
+			if len([(A,B) for A in nodos for B in nodos if mapa.is_fully_connected(A,B) and not o.is_fully_connected(A,B)]) > 0:
+				raise Exception()
+			if len([(A,B) for A in nodos for B in nodos if not mapa.is_fully_connected(A,B) and o.is_fully_connected(A,B)]) > 0:
+				raise Exception()
+			if len([(A,B) for A in nodos for B in nodos if o.is_fully_connected(A,B) and ((not type(o.get(A,B)) in [str]) or (not c.get(A,B) in cardinales))]) > 0:
+				raise Exception()
+		except:
+			raise Exception("Matriz de costes " + k + " no valida")
