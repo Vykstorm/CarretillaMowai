@@ -266,6 +266,7 @@ movimientos = dict(zip(['este', 'oeste', 'norte', 'sur'], map(lambda m:m.map(lam
 # Posibles orientaciones del robot.
 cardinales = ['este', 'oeste', 'norte', 'sur']
 
+
 orientaciones = grafo(nodos)
 orientaciones.connect('A', ['N1', 'N5'], ['E', 'N'])
 orientaciones.connect('B', 'N2', 'N')
@@ -283,10 +284,10 @@ orientaciones.connect('X22', ['X21', 'X12', 'X23', 'X32'], ['O', 'N', 'E', 'S'])
 orientaciones.connect('X23', ['X13', 'X22', 'X33'], ['N', 'O', 'S'])
 orientaciones.connect('X31', ['X21', 'X32'], ['N', 'E'])
 orientaciones.connect('X32', ['X31', 'X22', 'X33', 'N1'], ['O', 'N', 'E', 'S'])
-orientaciones.connect('X33', ['X32', 'X23'])
+orientaciones.connect('X33', ['X32', 'X23'], ['O', 'N'])
 
 
-abrv = {'E':'este', 'O':'oeste', 'sur':'S', 'N':'norte'}
+abrv = {'E':'este', 'O':'oeste', 'S':'sur', 'N':'norte'}
 orientaciones = orientaciones.map(lambda v,i,j:None if (v==None) or (not v in abrv) else abrv[v])
 
 
@@ -406,13 +407,13 @@ if __name__ == '__main__':
 	for k,m in movimientos.iteritems():
 		try:
 			if len([(A,B) for A in nodos for B in nodos if mapa.is_fully_connected(A,B) and not m.is_fully_connected(A,B)]) > 0:
-				raise Exception()
+				raise Exception("Las conexiones estan mal")
 			if len([(A,B) for A in nodos for B in nodos if not mapa.is_fully_connected(A,B) and m.is_fully_connected(A,B)]) > 0:
-				raise Exception()
+				raise Exception("Las conexiones estan mal")
 			if len([(A,B) for A in nodos for B in nodos if m.is_fully_connected(A,B) and (not m.get(A,B) in acciones)]) > 0:
-				raise Exception()
-		except:
-			raise Exception("Matriz de movimientos " + k + " no valida") 
+				raise Exception("Los valores estan mal")
+		except Exception as e:
+			raise Exception("Matriz de movimientos " + k + " no valida: " + reduce(lambda x,y:x+y, e.args,'')) 
 	# Verificamos las matrices de costes.
 	for k,c in costes.iteritems():
 		try:

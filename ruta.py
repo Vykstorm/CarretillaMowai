@@ -104,7 +104,9 @@ class ruta:
 	def __repr__(self):
 		if len(self.movimientos) == 0:
 			return ''
-		return reduce(lambda x,y:x+' -> '+repr(y), self.estados[1:], repr(self.estados[0]))
+		l = list(self.estados)
+		return reduce(lambda x,y:x+' -> '+repr(y), l[1:], repr(l[0]))
+		
 
 
 
@@ -176,6 +178,7 @@ def Aestrella(A,B,orientacion):
 	cerrados = Set()
 	fAbiertos = dict() # Contiene las evaluaciones de coste+heurística de los estados en abiertos.
 	fCerrados = dict() # Igual pero para los estados cerrados
+	parents = dict() # Almacena el estado antecesor de cada estado analizado.
 	
 	# Creamos el nodo inicial
 	inicio = E(A,orientacion) 
@@ -203,7 +206,7 @@ def Aestrella(A,B,orientacion):
 		
 		# Obtenemos los sucesores de N
 		sucesores = V(N)
-		
+
 		# Por cada sucesor...
 		for S in sucesores:
 			# Calcular coste+heurística del sucesor
@@ -226,24 +229,20 @@ def Aestrella(A,B,orientacion):
 			# Añadir el sucesor a abiertos
 			abiertos.add(S)
 			fAbiertos[S] = fs
+			parents[S] = N
 	
 	# Hemos tenido éxito en la búsqueda?
-	if len(filter(lambda X:F(N,B),cerrados)) == 0:
+	if not F(N,B):
 		raise Exception() # Búsqueda no exitosa
 		
 		
 	# Reorganizamos los estados.
-	ruta = []
-	actual = inicio
-	ruta.append(actual)
-	cerrados.remove(actual)
-	while len(cerrados) > 0:
-		actual = filter(lambda X:isV(actual,X), cerrados)
-		if len(actual)==0:
-			raise Exception()
-		actual = actual[0]
+	ruta = [N]
+	actual = N
+	while parents[actual] != inicio:
+		actual = parents[actual]
 		ruta.append(actual)
-		cerrados.remove(actual)
-
+	ruta.append(inicio)
+	ruta.reverse()
 	return ruta
 	
