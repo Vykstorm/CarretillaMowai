@@ -425,12 +425,3 @@ if __name__ == '__main__':
 		except:
 			raise Exception("Matriz de costes " + k + " no valida")
 	# Verificamos las matrices de orientaciones
-	try:
-		if len([(A,B) for A in nodos for B in nodos if mapa.is_fully_connected(A,B) and not orientaciones.is_fully_connected(A,B)]) > 0:
-			raise Exception()
-		if len([(A,B) for A in nodos for B in nodos if not mapa.is_fully_connected(A,B) and orientaciones.is_fully_connected(A,B)]) > 0:
-			raise Exception()
-		if len([(A,B) for A in nodos for B in nodos if orientaciones.is_fully_connected(A,B) and ((not type(orientaciones.get(A,B)) in [str]) or (not orientaciones.get(A,B) in cardinales))]) > 0:
-			raise Exception()
-	except:
-		raise Exception("Matriz de orientaciones " + k + " no valida")
