@@ -59,10 +59,10 @@ class ruta:
 				A = estados[0].get_nodo()
 				B = estados[1].get_nodo()
 				orientacion = estados[0].get_orientacion()
-#				if not movimientos[orientacion].is_connected(A,B):
-#					raise Exception()
-#				return [movimientos[orientacion].get(A,B)]
-				return [movimientos['este'].get(A,B)]
+				if not movimientos[orientacion].is_connected(A,B):
+					raise Exception()
+				return [movimientos[orientacion].get(A,B)]
+#				return [movimientos['este'].get(A,B)]
 		else: # Hay un estado o ninguno.
 			return []
 		
@@ -151,18 +151,18 @@ def H(X,A):
 	 
 # Devuelve los estados vecinos de X
 def V(X):
-#	return map(lambda B:E(B,orientaciones.get(X.get_nodo(),B)) mapa.get_neighbours(X.get_nodo()))
-	return map(lambda B:E(B,'este'), mapa.get_neighbours(X.get_nodo()))
+	return map(lambda B:E(B,orientaciones.get(X.get_nodo(),B)) mapa.get_neighbours(X.get_nodo()))
+#	return map(lambda B:E(B,'este'), mapa.get_neighbours(X.get_nodo()))
 
 # Comprueba si Y es vecino de X.
 def isV(X,Y):
-#	return mapa.is_connected(X.get_nodo(),Y.get_nodo()) and (Y.get_orientacion() == orientaciones.get(X.get_nodo(),Y.get_nodo()))
-	return mapa.is_connected(X.get_nodo(),Y.get_nodo())
+	return mapa.is_connected(X.get_nodo(),Y.get_nodo()) and (Y.get_orientacion() == orientaciones.get(X.get_nodo(),Y.get_nodo()))
+#	return mapa.is_connected(X.get_nodo(),Y.get_nodo())
 
 # Coste de ir de un estado X a un estado Y
 def C(X,Y):
-#	return costes[X.get_orientacion()].get(X.get_nodo(),Y.get_nodo())
-	return costes['este'].get(X.get_nodo(),Y.get_nodo())
+	return costes[X.get_orientacion()].get(X.get_nodo(),Y.get_nodo())
+#	return costes['este'].get(X.get_nodo(),Y.get_nodo())
 	
 # Comprueba si el estado X es un estado final, sabiendo que el nodo A es el
 # nodo destino
