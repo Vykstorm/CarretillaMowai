@@ -151,7 +151,7 @@ def H(X,A):
 	 
 # Devuelve los estados vecinos de X
 def V(X):
-	return map(lambda B:E(B,orientaciones.get(X.get_nodo(),B)) mapa.get_neighbours(X.get_nodo()))
+	return map(lambda B:E(B,orientaciones.get(X.get_nodo(),B)), mapa.get_neighbours(X.get_nodo()))
 #	return map(lambda B:E(B,'este'), mapa.get_neighbours(X.get_nodo()))
 
 # Comprueba si Y es vecino de X.
