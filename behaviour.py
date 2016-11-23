@@ -8,6 +8,8 @@ from sensores import get_sensores, get_sensores_discretizados
 from motores import move, girar, girar90, volver_atras
 from ruta import estado, planificador_Aestrella
 import mapa
+from mapa import nodos, nodos_centro
+from localizacion import gps
 
 # Las instancias de esta clase representan  máquinas de estados finitos.
 class DTE:
@@ -56,14 +58,18 @@ class robot(DTE):
 		self.last_inputs = list(get_sensores_discretizados())
 		return inputs
 		
-	def cambiar_estado(self, otro_estado):
-		DTE.cambiar_estado(self, otro_estado)
+def cambiar_estado(self, otro_estado):
 		if otro_estado == self.interseccion: 
 			if not self.ruta.avanzar():  # El robot ha alcanzado su destino
 				self.cambiar_estado(self.fin) # Finalizar la ejecución
 			else:		
 				print 'Siguiente movimiento: ' + self.movimiento_actual
-	
+				
+				# Nos metemos en el centro del tablero?
+				if self.ruta.estado_actual().get_nodo() in nodos_centro:
+					robot_centro(self).ejecutar()
+								
+		DTE.cambiar_estado(self, otro_estado)
 	# Estado inicial.
 	def inicio(self, *args):
 		self.cambiar_estado(self.pasillo)
@@ -147,3 +153,30 @@ class robot(DTE):
 		# Vuelvo al nodo anterior y sigo la nueva ruta calculada
 		self.cambiar_estado(self.pasillo)
 			
+
+
+
+# La instancia de esta clase modelará el comportamiento del robot moway como una máquina de estados
+# finitos en el centro del tablero
+# El comportamiento del robot en el centro del tablero es distinto (activa el algoritmo de localización).
+# Para el resto del mapa, no es necesario activar dicho algoritmo.
+class robot_centro(DTE):
+	def __init__(self, parent):
+		DTE.__init__(self)
+		self.parent = parent
+		self.localizador = gps(parent.ruta.estado_actual().get_nodo(), parent.ruta.estado_actual().get_orientacion())
+
+	# Inputs
+	def inputs(self):
+		return tuple([self.localizador.get_nodo()] + list(self.parent.inputs()))
+
+	# Estado inicial.
+	def inicio(self, *args):
+		self.cambiar_estado(self.pasillo)
+		# Activar algoritmo de localización.
+		print args
+		
+	# Estado final
+	def final(self, *args):
+		# Desactivar algoritmo de localización.
+		pass
