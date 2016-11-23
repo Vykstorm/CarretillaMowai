@@ -67,13 +67,36 @@ class ruta:
 			return []
 		
 	
-	# Este método deberá devolver el siguiente movimiento a realizar.
-	def siguiente_movimiento(self):
+	# Este método hace que el estado inicial sea aquel que le antecede y además
+	# consume el siguiente movimiento de la ruta. Devuelve false si ya se había llegado
+	# el destino, true en caso contrario
+	def avanzar(self):
 		if len(self.movimientos) == 0:
 			return False
-		movimiento = self.movimientos[0]
 		self.movimientos.popleft()
-		return movimiento
+		self.estados.popleft()
+		return True
+		
+	# Este método devuelve el primer estado de la ruta.
+	def estado_actual(self):
+		return self.estados[0]
+		
+	# Este método devuelve el estado final de la ruta.
+	def estado_final(self):
+		return self.estados[-1]
+	
+	# Este método devuelve el estado que antecede al estado inicial o actual.
+	def siguiente_estado(self):
+		if len(self.movimientos) == 0:
+			raise Exception()
+		return self.estados[1]
+		
+	# Este método devuelve el siguiente movimiento para alcanzar el siguiente estado
+	# a partir del estado actual.
+	def siguiente_movimiento(self):
+		if len(self.movimientos) == 0:
+			raise Exception()
+		return self.movimientos[0]
 
 	def __str__(self):
 		return str(self.estados)

@@ -6,6 +6,8 @@
 
 from sensores import get_sensores, get_sensores_discretizados
 from motores import move, girar, girar90, volver_atras
+from ruta import estado, planificador_Aestrella
+import mapa
 
 # Las instancias de esta clase representan  máquinas de estados finitos.
 class DTE:
@@ -41,10 +43,12 @@ class DTE:
 # La instancia de esta clase modelará el comportamiento del robot moway como una máquina de estados
 # finitos.
 class robot(DTE):
-	# Pasamos como parámetro la ruta que deberá llevar el robot moway 
-	def __init__(self, ruta):
+	# Pasamos como parámetro el estado inicial del robot (orientacion + posición) y el nodo destino.
+	def __init__(self, inicio, destino, orientacion):
 		DTE.__init__(self)
-		self.ruta = ruta
+		
+		# Planificamos la ruta inicial
+		self.ruta = planificador_Aestrella(inicio, destino, orientacion).get_ruta()
 		self.last_inputs = list(get_sensores_discretizados())
 	
 	def inputs(self):
@@ -55,10 +59,9 @@ class robot(DTE):
 	def cambiar_estado(self, otro_estado):
 		DTE.cambiar_estado(self, otro_estado)
 		if otro_estado == self.interseccion: 
-			self.movimiento_actual = self.ruta.siguiente_movimiento() # Siguiente movimiento ?
-			if not self.movimiento_actual:  # El robot ha alcanzado su destino
+			if not self.ruta.avanzar():  # El robot ha alcanzado su destino
 				self.cambiar_estado(self.fin) # Finalizar la ejecución
-			else:
+			else:		
 				print 'Siguiente movimiento: ' + self.movimiento_actual
 	
 	# Estado inicial.
@@ -71,7 +74,7 @@ class robot(DTE):
 			self.cambiar_estado(self.interseccion)
 		if (ic >= 1) and (dc >= 1):
                         if (ic == 2) and (dc == 2):
-                                self.cambiar_estado(self.bloqueado_pasillo)
+                                self.cambiar_estado(self.pasillo_bloqueado)
                         if (dl >= 1) and (il == 0):
                                 self.cambiar_estado(self.esquina_izq)
                         elif (il >= 1) and (dl == 0):
@@ -123,13 +126,24 @@ class robot(DTE):
 				move()
 
 	def transicion(self, ic, il, dc, dl, color, *args):
-                if color == 2:
-                        move()
-                else:
-                        self.cambiar_estado(self.pasillo)
+		if color == 2:
+			move()
+		else:
+			self.cambiar_estado(self.pasillo)
 
-        # Estado bloqueado (obstaculo frontal en pasillo)
-        def bloqueado_pasillo(self, ic, il, dc, dl, color, *args):
-                volver_atras()
-                self.cambiar_estado(self.pasillo)
-                
+	# Estado bloqueado (obstaculo frontal en pasillo)
+	def pasillo_bloqueado(self, ic, il, dc, dl, color, *args):
+		orientacion_invertida = {'norte':'sur', 'sur':'norte', 'este':'oeste', 'oeste':'este'}
+		estado_actual = self.ruta.estado_actual()
+		estado_vuelta = estado(estado_actual.get_nodo(), orientacion_invertida[estado_actual.get_orientacion()])
+		
+		# Acualizamos la información del mapa (marcamos que hay un obstáculo obstruyendo
+		# la ruta)
+		mapa.obstaculos.block(estado_actual.get_nodo(), self.ruta.siguiente_estado().get_nodo())
+		
+		# Replanifico la ruta desde el último nodo.
+		self.ruta = planificador_Aestrella(estado_vuelta.get_nodo(), self.ruta.estado_final().get_nodo(), estado_vuelta.get_orientacion()).get_ruta()
+		
+		# Vuelvo al nodo anterior y sigo la nueva ruta calculada
+		self.cambiar_estado(self.pasillo)
+			
