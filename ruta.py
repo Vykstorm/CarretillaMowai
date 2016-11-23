@@ -46,7 +46,7 @@ class ruta:
 	# Constructor. Se le indica los estados del robot por los que debe pasar
 	# para recorrer el camino marcado por la ruta.
 	def __init__(self, estados):
-		self.estados = estados
+		self.estados = deque(estados)
 		self.movimientos = deque(self.calcular_movimientos(estados))
 	
 	# Este método calcula el conjunto de movimientos secuenciales que debe
