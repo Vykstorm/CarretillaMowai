@@ -11,7 +11,7 @@ from time import sleep
 
 from sensores import get_sensores_discretizados, get_dist_recorrida
 from probs import *
-from mapa import colores
+from mapa import colores, nodos_centro
 
 
 
@@ -19,11 +19,13 @@ POSITION_UPDATE_TIME = 1
 
 # Con esta clase podremos estimar la posición del robot en el tablero.
 class gps:
-	# Constructor: Debe pasarse como parámetros, la posición a priori del robot
+	# Constructor: Debe pasarse como parámetros,el nodo a priori del robot
 	# dentro del tablero y su dirección de movimiento ('este', 'oeste', 'norte', 
-	# 'sur')
-	def __init__(self, pos, orientacion):
+	# 'sur').
+	def __init__(self, nodo, orientacion):
 		grid = mat(3,3)
+		fila, col = int(nodo[1]),int(nodo[2])
+		pos = [fila, col]
 		if (pos[0] < 0) or (pos[0] >= grid.get_width()) or (pos[1] < 0) or (pos[1] >= grid.get_height()):
 			raise IndexError()
 		self.orientacion = orientacion
@@ -53,6 +55,11 @@ class gps:
 		i = p.index(max(p))
 		return [i / probs.get_height(), i % probs.get_height()]
 	
+	# Este método devuelve el nodo donde se estima que está el robot.
+	# (Cuya casilla tenga más probabilidad).
+	def get_nodo(self):
+		pos = self.get_pos()
+		return 'X' + str(pos[0]) + str(pos[1])
 	
 	
 	# Este método inicializa la matriz de probabilidades.		
@@ -158,7 +165,7 @@ class gps:
 
 
 # Código de depuración
-if __name__ == '__main__':
+if __name__ == '__main___':
 	import curses
 	std = curses.initscr()
 	
