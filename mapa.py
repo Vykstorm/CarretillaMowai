@@ -164,7 +164,7 @@ mapa.connect('X32', ['X31', 'X22', 'X33', 'N1'])
 mapa.connect('X33', ['X32', 'X23'])
 
 
-
+###################################################################
 # Los siguientes gráfos definen para cada orientación posible del robot
 # (este, oeste, norte, sur), el movimiento necesario para ir de un nodo a 
 # cada uno de sus vecinos.
@@ -193,11 +193,46 @@ m_este.connect('X31', ['X21', 'X32'], ['L', 'F'])
 m_este.connect('X32', ['X31', 'X22', 'X33', 'N1'], ['B', 'L', 'F', 'R'])
 m_este.connect('X33', ['X32', 'X23'], ['B', 'L'])
 
+
 # Orientación OESTE
 m_oeste = grafo(nodos)
+m_oeste.connect('A', ['N1', 'N5'], ['R', 'B'])
+m_oeste.connect('B', 'N2', 'R')
+m_oeste.connect('C', 'N5', 'L')
+m_oeste.connect('N1', ['A', 'N3', 'X32'], ['F', 'B', 'R'])
+m_oeste.connect('N2', ['B', 'N4', 'X21'], ['L', 'R', 'B'])
+m_oeste.connect('N3', ['N4', 'N1', 'N5'], ['R', 'L', 'B'])
+m_oeste.connect('N4', ['N2', 'N3', 'X12'], ['F', 'B', 'L'])
+m_oeste.connect('N5', ['N3', 'C', 'A'], ['F', 'R', 'L'])
+m_oeste.connect('X11', ['X12', 'X21'], ['B', 'L'])
+m_oeste.connect('X12', ['X11', 'X22', 'X13', 'N4'], ['F', 'L', 'B', 'R'])
+m_oeste.connect('X13', ['X12', 'X23'], ['F', 'L'])
+m_oeste.connect('X21', ['X11', 'X31', 'X22', 'N2'], ['R', 'L', 'B', 'F'])
+m_oeste.connect('X22', ['X21', 'X12', 'X23', 'X32'], ['F', 'R', 'B', 'L'])
+m_oeste.connect('X23', ['X13', 'X22', 'X33'], ['R', 'F', 'L'])
+m_oeste.connect('X31', ['X21', 'X32'], ['R', 'B'])
+m_oeste.connect('X32', ['X31', 'X22', 'X33', 'N1'], ['F', 'R', 'B', 'L'])
+m_oeste.connect('X33', ['X32', 'X23'], ['F', 'R'])
 
 # Orientación NORTE
 m_norte = grafo(nodos)
+m_norte.connect('A', ['N1', 'N5'], ['F','R'])
+m_norte.connect('B', 'N2', 'F')
+m_norte.connect('C', 'N5', 'B')
+m_norte.connect('N1', ['A', 'N3', 'X32'], ['L', 'R', 'F'])
+m_norte.connect('N2', ['B', 'N4', 'X21'], ['B', 'F', 'R'])
+m_norte.connect('N3', ['N4', 'N1', 'N5'], ['F', 'B', 'R'])
+m_norte.connect('N4', ['N2', 'N3', 'X12'], ['L', 'R', 'B'])
+m_norte.connect('N5', ['N3', 'C', 'A'], ['L', 'F', 'B'])
+m_norte.connect('X11', ['X12', 'X21'], ['R', 'B'])
+m_norte.connect('X12', ['X11', 'X22', 'X13', 'N4'], ['L', 'B', 'R', 'F'])
+m_norte.connect('X13', ['X12', 'X23'], ['L', 'B'])
+m_norte.connect('X21', ['X11', 'X31', 'X22', 'N2'], ['F', 'B', 'R', 'L'])
+m_norte.connect('X22', ['X21', 'X12', 'X23', 'X32'], ['L', 'F', 'R', 'B'])
+m_norte.connect('X23', ['X13', 'X22', 'X33'], ['F', 'L', 'B'])
+m_norte.connect('X31', ['X21', 'X32'], ['F', 'R'])
+m_norte.connect('X32', ['X31', 'X22', 'X33', 'N1'], ['L', 'F', 'R', 'B'])
+m_norte.connect('X33', ['X32', 'X23'], ['L', 'F'])
 
 # Orientación SUR
 m_sur = grafo(nodos)
@@ -292,6 +327,23 @@ c_oeste = grafo(nodos)
 
 # Orientación NORTE
 c_norte = grafo(nodos)
+c_norte.connect('A', ['N1', 'N5'], [cge+d('A','N1'), cgn+cge+d('A','N5')])
+c_norte.connect('B', 'N2', d('B','N2'))
+c_norte.connect('C', 'N5', 2*cgn+d('C','N5'))
+c_norte.connect('N1', ['A', 'N3', 'X32'], [cgn+cge+d('N1','A'), cgn+cge+d('N1','N3'), 1])
+c_norte.connect('N2', ['B', 'N4', 'X21'], [2*cgn+d('N2','B'), cge+d('N2','N4'), cgn+1])
+c_norte.connect('N3', ['N4', 'N1', 'N5'], [cge+d('N3','N4'), 2*cgn+cge+d('N3','N1'), cgn+1])
+c_norte.connect('N4', ['N2', 'N3', 'X12'], [cgn+cge+d('N4','N2'), cgn+cge+d('N4','N3'), 2*cgn+1])
+c_norte.connect('N5', ['N3', 'C', 'A'], [cgn+1, d('N5','C'), 2*cgn+cge+d('N5','A')])
+c_norte.connect('X11', ['X12', 'X21'], [cgn+1, 2*cgn+1])
+c_norte.connect('X12', ['X11', 'X22', 'X13', 'N4'], [cgn+1, 2*cgn+1, cgn+1, 1])
+c_norte.connect('X13', ['X12', 'X23'], [cgn+1, 2*cgn+1])
+c_norte.connect('X21', ['X11', 'X31', 'X22', 'N2'], [1, 2*cgn+1, cgn+1, cgn+1])
+c_norte.connect('X22', ['X21', 'X12', 'X23', 'X32'], [cgn+1, 1, cgn+1, 2*cgn+1])
+c_norte.connect('X23', ['X13', 'X22', 'X33'], [1, cgn+1, 2*cgn+1])
+c_norte.connect('X31', ['X21', 'X32'], [1, cgn+1])
+c_norte.connect('X32', ['X31', 'X22', 'X33', 'N1'], [cgn+1, 1, cgn+1, 2*cgn+1])
+c_norte.connect('X33', ['X32', 'X23'], [cgn+1, 1])
 
 # Orientación SUR
 c_sur = grafo(nodos)
