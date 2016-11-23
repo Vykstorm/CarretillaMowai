@@ -104,8 +104,11 @@ colores[2] = [0, 1, 0]
 # El coste se mide en unidades: El coste de ir de un nodo a otro es la distancia manhattan
 # entre ambos (midiendo la distancia en términos de casillas y no en cm)
 
+# Nodos del centro del tablero
+nodos_centro = ['X11', 'X12', 'X13', 'X21', 'X22', 'X23', 'X31', 'X32', 'X33']
+
 # Nodos del mapa
-nodos = ['A', 'B', 'C', 'N1', 'N2', 'N3', 'N4', 'N5','X11', 'X12', 'X13', 'X21', 'X22', 'X23', 'X31', 'X32', 'X33']
+nodos = ['A', 'B', 'C', 'N1', 'N2', 'N3', 'N4', 'N5'] + nodos_centro
 
 
 ####
