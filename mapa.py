@@ -108,9 +108,40 @@ colores[2] = [0, 1, 0]
 nodos = ['A', 'B', 'C', 'N1', 'N2', 'N3', 'N4', 'N5','X11', 'X12', 'X13', 'X21', 'X22', 'X23', 'X31', 'X32', 'X33']
 
 
+####
+# EL siguiente gráfo almacena donde están los obstáculos, sea G(V,A) el gráfo.
+# Si el par <X,Y> de nodos está en A, es decir, forman una arista, querrá decir
+# que entre X e Y hay un obstáculo, por lo que el robot no puede desplazarse 
+# de X->Y o de Y->X 
+class grafo_obstaculos(grafo):
+	def __init__(self, *args):
+		grafo.__init__(self, *args)
+	
+	def block(self, A, B):
+		grafo.connect(self, A,B)
+		grafo.connect(self, B,A)
+		
+	def unblock(self, A,B):
+		grafo.disconnect(self, A,B)
+		grafo.disconnect(self, B,A)
+		
+	def is_blocked(self, A,B):
+		return grafo.is_fully_connected(self, A,B)
+
+obstaculos = grafo_obstaculos(nodos)
+
+
 # El siguiente gráfo puede usarse para conocer la vecindad de cada nodo.
 
-mapa = grafo(nodos)
+class grafo_mapa(grafo):
+	def __init__(self, *args):
+		grafo.__init__(self, *args)
+		
+	def get(self, A, B):
+		return grafo.get(self, A, B) if not obstaculos.is_blocked(A,B) else None
+
+
+mapa = grafo_mapa(nodos)
 mapa.connect('A', ['N1', 'N5'])
 mapa.connect('B', 'N2')
 mapa.connect('C', 'N5')

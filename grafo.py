@@ -46,6 +46,14 @@ class grafo(mat):
 			if len(B) > 1:
 				self.connect(A,B[1:],X[1:])
 		
+	# Desconecta los nodos A y B en la direcciÛn A -> B (si es que est·n
+	# conectados
+	def disconnect(self, A,B):
+		if (not type(A) in [str, int]) or (not type(B) in [str, int]):
+			raise Exception()
+		if self.is_connected(A,B):
+			mat.set(self, self.index_of(A) if type(A) != int else A, self.index_of(B) if type(B) != int else B, None)
+		
 	# Devuelve el coste entre los nodos A y B (A n direcci√≥n a B).
 	# Devuelve A y B si A no est√° conectado con B
 	def get(self,A,B):
