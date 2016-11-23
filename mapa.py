@@ -285,10 +285,25 @@ c_este.connect('X31', ['X21', 'X32'], [cgn+1, 1])
 c_este.connect('X32', ['X31', 'X22', 'X33', 'N1'], [2*cgn+1,cgn+1,1,cgn+1])
 c_este.connect('X33', ['X32', 'X23'], [2*cgn+1,cgn+1])
 
-
-
 # Orientación OESTE
 c_oeste = grafo(nodos)
+c_oeste.connect('A', ['N1', 'N5'], [cgn+cge+d('A','N1'), 2*cgn+cge+d('A', 'N5')])
+c_oeste.connect('B', 'N2', cgn+d('B','N2'))
+c_oeste.connect('C', 'N5', cgn+d('C', 'N5'))
+c_oeste.connect('N1', ['A', 'N3', 'X32'], [cge+d('N1','A'), 2*cgn+cge+d('N1','N3'), cgn+1])
+c_oeste.connect('N2', ['B', 'N4', 'X21'], [cgn+d('N2','B'), cgn+cge+d('N2','N4'), 2*cgn+1])
+c_oeste.connect('N3', ['N4', 'N1', 'N5'], [cgn+cge+d('N3','N4'), cgn+cge+d('N3','N1'), 2*cgn+1])
+c_oeste.connect('N4', ['N2', 'N3', 'X12'], [cge+d('N4','N2'), 2*cgn+cge+d('N4', 'N3'), cgn+1])
+c_oeste.connect('N5', ['N3', 'C', 'A'], [1, cgn+d('N5','C'), cgn+cge+d('N5', 'A')])
+c_oeste.connect('X11', ['X12', 'X21'], [2*cgn+1, cgn+1])
+c_oeste.connect('X12', ['X11', 'X22', 'X13', 'N4'], [1, cgn+1, 2*cgn+1, cgn+1])
+c_oeste.connect('X13', ['X12', 'X23'], [1, cgn+1])
+c_oeste.connect('X21', ['X11', 'X31', 'X22', 'N2'], [cgn+1, cgn+1, 2*cgn+1, 1])
+c_oeste.connect('X22', ['X21', 'X12', 'X23', 'X32'], [1, cgn+1, 2*cgn+1, cgn+1])
+c_oeste.connect('X23', ['X13', 'X22', 'X33'], [cgn+1, 1, cgn+1])
+c_oeste.connect('X31', ['X21', 'X32'], [cgn+1, 2*cgn+1])
+c_oeste.connect('X32', ['X31', 'X22', 'X33', 'N1'], [1, cgn+1, 2*cgn+1, cgn+1])
+c_oeste.connect('X33', ['X32', 'X23'], [1, cgn+1])
 
 # Orientación NORTE
 c_norte = grafo(nodos)
