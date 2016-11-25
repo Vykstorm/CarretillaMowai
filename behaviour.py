@@ -5,7 +5,7 @@
 # finitos (para seguir una ruta específica)
 
 from sensores import get_sensores, get_sensores_discretizados
-from motores import move, girar, girar90, volver_atras
+from motores import move, girar, girar90, girar180, volver_atras
 from ruta import estado, planificador_Aestrella
 import mapa
 from mapa import nodos, nodos_centro
@@ -51,6 +51,8 @@ class robot(DTE):
 		
 		# Planificamos la ruta inicial
 		self.ruta = planificador_Aestrella(inicio, destino, orientacion).get_ruta()
+		print 'Ruta inicial: ' + repr(self.ruta)
+		print 'Siguiente movimiento: ' + repr(self.ruta.siguiente_movimiento())
 		self.last_inputs = list(get_sensores_discretizados())
 	
 	def inputs(self):
@@ -58,27 +60,36 @@ class robot(DTE):
 		self.last_inputs = list(get_sensores_discretizados())
 		return inputs
 		
-def cambiar_estado(self, otro_estado):
-		if otro_estado == self.interseccion: 
-			if not self.ruta.avanzar():  # El robot ha alcanzado su destino
-				self.cambiar_estado(self.fin) # Finalizar la ejecución
-			else:		
-				print 'Siguiente movimiento: ' + self.movimiento_actual
-				
-				# Nos metemos en el centro del tablero?
-				if self.ruta.estado_actual().get_nodo() in nodos_centro:
-					robot_centro(self).ejecutar()
-								
-		DTE.cambiar_estado(self, otro_estado)
+        def cambiar_estado(self, otro_estado):
+                if otro_estado == self.interseccion:
+                        if not self.ruta.avanzar():  # El robot ha alcanzado su destino
+                                self.cambiar_estado(self.fin) # Finalizar la ejecución
+                        else:
+                                self.movimiento_actual = self.ruta.siguiente_movimiento()
+                                print 'Siguiente movimiento: ' + repr(self.movimiento_actual)
+                                # Nos metemos en el centro del tablero?
+                                if self.ruta.estado_actual().get_nodo() in nodos_centro:
+                                        robot_centro(self).ejecutar()				
+                                DTE.cambiar_estado(self, otro_estado)
+                else:
+                        DTE.cambiar_estado(self, otro_estado)
 	# Estado inicial.
-	def inicio(self, *args):
-		self.cambiar_estado(self.pasillo)
+        def inicio(self, *args):
+                movimiento_actual = self.ruta.siguiente_movimiento()
+                if movimiento_actual == 'left':
+                        girar90('left')
+                elif movimiento_actual == 'right':
+                        girar90('right')
+                elif movimiento_actual == 'forward':
+                        pass
+                self.cambiar_estado(self.transicion)
 		
 	# Estado pasillo
 	def pasillo(self, ic, il, dc, dl, color, _ic, _il, _dc, _dl, *args):
 		if color == 2: 
 			self.cambiar_estado(self.interseccion)
 		if (ic >= 1) and (dc >= 1):
+                        print ic, dc, il, dl
                         if (ic == 2) and (dc == 2):
                                 self.cambiar_estado(self.pasillo_bloqueado)
                         if (dl >= 1) and (il == 0):
@@ -91,8 +102,8 @@ def cambiar_estado(self, otro_estado):
 			elif (dc == 2) or (dl == 2):
 				girar('left')
 			else:
-				move()	
-		
+				move()
+   
 	# Estado esquina izquierda
 	def esquina_izq(self, ic, il, dc, dl, color, *args):
 		if color == 2:
@@ -122,15 +133,15 @@ def cambiar_estado(self, otro_estado):
 		if color < 2:
 			self.cambiar_estado(self.pasillo)
 		else:
-			if self.movimiento_actual == 'left':
+                        movimiento_actual = self.ruta.siguiente_movimiento()
+			if movimiento_actual == 'left':
 				girar90('left')
 				self.cambiar_estado(self.transicion)
-			elif self.movimiento_actual == 'right':
+			elif movimiento_actual == 'right':
 				girar90('right')
 				self.cambiar_estado(self.transicion)
-			elif self.movimiento_actual == 'forward':
+			elif movimiento_actual == 'forward':
 				move()
-
 	def transicion(self, ic, il, dc, dl, color, *args):
 		if color == 2:
 			move()
@@ -139,6 +150,12 @@ def cambiar_estado(self, otro_estado):
 
 	# Estado bloqueado (obstaculo frontal en pasillo)
 	def pasillo_bloqueado(self, ic, il, dc, dl, color, *args):
+                # El robot da la vuelta
+                girar180()
+		
+                # Vuelvo al nodo anterior y sigo la nueva ruta calculada
+		self.cambiar_estado(self.pasillo_vuelta)
+                
 		orientacion_invertida = {'norte':'sur', 'sur':'norte', 'este':'oeste', 'oeste':'este'}
 		estado_actual = self.ruta.estado_actual()
 		estado_vuelta = estado(estado_actual.get_nodo(), orientacion_invertida[estado_actual.get_orientacion()])
@@ -149,10 +166,27 @@ def cambiar_estado(self, otro_estado):
 		
 		# Replanifico la ruta desde el último nodo.
 		self.ruta = planificador_Aestrella(estado_vuelta.get_nodo(), self.ruta.estado_final().get_nodo(), estado_vuelta.get_orientacion()).get_ruta()
-		
-		# Vuelvo al nodo anterior y sigo la nueva ruta calculada
-		self.cambiar_estado(self.pasillo)
-			
+                print 'Ruta alternativa: ' + repr(self.ruta)
+	
+
+	# Estado pasillo vuelta
+	def pasillo_vuelta(self, ic, il, dc, dl, color, _ic, _il, _dc, _dl, *args):
+		if color == 2: 
+			self.cambiar_estado(self.inicio)
+		if (ic >= 1) and (dc >= 1):
+                        if (ic == 2) and (dc == 2):
+                                self.cambiar_estado(self.pasillo_bloqueado)
+                        if (dl >= 1) and (il == 0):
+                                self.cambiar_estado(self.esquina_izq)
+                        elif (il >= 1) and (dl == 0):
+                                self.cambiar_estado(self.esquina_der)
+		else: 
+			if (ic == 2) or (il == 2):
+				girar('right')
+			elif (dc == 2) or (dl == 2):
+				girar('left')
+			else:
+				move()
 
 
 
@@ -164,18 +198,25 @@ class robot_centro(DTE):
 	def __init__(self, parent):
 		DTE.__init__(self)
 		self.parent = parent
+		print 'Entrando en la zona neutral. Nodo: ' + parent.ruta.estado_actual().get_nodo()
 		self.localizador = gps(parent.ruta.estado_actual().get_nodo(), parent.ruta.estado_actual().get_orientacion())
-
+                self.ultimo_nodo = self.localizador.get_nodo()
 	# Inputs
 	def inputs(self):
 		return tuple([self.localizador.get_nodo()] + list(self.parent.inputs()))
 
 	# Estado inicial.
 	def inicio(self, *args):
-		self.cambiar_estado(self.pasillo)
+		self.cambiar_estado(self.mover)
 		# Activar algoritmo de localización.
-		print args
-		
+
+	# Estado final
+	def fin(self, *args):
+                print 'Saliendo fuera de la zona neutral. Nodo: ' + self.ultimo_nodo
+
+	# Estado mover
+
+        
 	# Estado final
 	def final(self, *args):
 		# Desactivar algoritmo de localización.

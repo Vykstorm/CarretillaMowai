@@ -24,7 +24,7 @@ class gps:
 	# 'sur').
 	def __init__(self, nodo, orientacion):
 		grid = mat(3,3)
-		fila, col = int(nodo[1]),int(nodo[2])
+		fila, col = int(nodo[1])-1,int(nodo[2])-1
 		pos = [fila, col]
 		if (pos[0] < 0) or (pos[0] >= grid.get_width()) or (pos[1] < 0) or (pos[1] >= grid.get_height()):
 			raise IndexError()
