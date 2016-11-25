@@ -33,7 +33,7 @@ try:
         inicio = 'N1'
         orientacion = 'norte'
         # Nodo destino del robot
-        fin = 'N4'
+        fin = 'B'
 
         # Comenzamos a mover el robot
         robot(inicio, fin, orientacion).ejecutar()

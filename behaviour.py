@@ -10,6 +10,7 @@ from ruta import estado, planificador_Aestrella
 import mapa
 from mapa import nodos, nodos_centro
 from localizacion import gps
+from time import sleep
 
 # Las instancias de esta clase representan  máquinas de estados finitos.
 class DTE:
@@ -205,25 +206,81 @@ class robot_centro(DTE):
 		DTE.__init__(self)
 		self.parent = parent
 		print 'Entrando en la zona neutral. Nodo: ' + parent.ruta.estado_actual().get_nodo()
-		self.localizador = gps(parent.ruta.estado_actual().get_nodo(), parent.ruta.estado_actual().get_orientacion())
+		self.localizador = gps(parent.ruta.estado_actual().get_nodo(), parent.ruta.siguiente_estado().get_orientacion())
                 self.ultimo_nodo = self.localizador.get_nodo()
+        # Devuelve la ruta precalculada
+        def get_ruta(self):
+                return self.parent.ruta
+
+        # Recalcula la ruta en base a la casilla actual del robot y su orientación
+        def recalcular_ruta(self):
+                self.parent.ruta = planificador_Aestrella(self.localizador.get_nodo(), self.parent.ruta.estado_final().get_nodo(), self.parent.ruta.estado_actual().get_orientacion()).get_ruta()
+                # Reiniciar el localizador
+                self.localizador.close()
+                self.localizador = gps(self.parent.ruta.estado_actual().get_nodo(), self.parent.ruta.siguiente_estado().get_orientacion())
+                print 'Ruta alternativa: ' + repr(self.parent.ruta)
+ 
+                
 	# Inputs
 	def inputs(self):
 		return tuple([self.localizador.get_nodo()] + list(self.parent.inputs()))
 
 	# Estado inicial.
 	def inicio(self, *args):
-		self.cambiar_estado(self.mover)
-		# Activar algoritmo de localización.
+                movimiento_actual = self.get_ruta().siguiente_movimiento()
+                print movimiento_actual
+                if movimiento_actual == 'left':
+                        girar90('left')
+                elif movimiento_actual == 'right':
+                        girar90('right')
 
-	# Estado final
-	def fin(self, *args):
-                print 'Saliendo fuera de la zona neutral. Nodo: ' + self.ultimo_nodo
+                # El siguiente estado está dentro del tablero?
+                if self.get_ruta().siguiente_estado().get_nodo() in nodos_centro:
+                        self.cambiar_estado(self.mover)
+		else:
+                        print 'Saliendo fuera de la zona neutral. Nodo: ' + self.ultimo_nodo
+                        self.cambiar_estado(self.salir_fuera)
+                        
+        # Estado salir fuera
+	def salir_fuera(self, nodo, ic, il, dc, dl, color, *args):
+                if color < 2:
+                        move()
+                else:
+                        self.cambiar_estado(self.fin)
+        # Estado final.
+        def fin(self, *args):
+                # Parar el localizador
+                self.localizador.close()
+                self.get_ruta().avanzar()
 
-	# Estado mover
+	# Estado mover hacia delante.
+	def mover(self, nodo, *args):
+                move()
+                sleep(1)
+                # Compruebo si el robot ha cambiado de casilla.
+                if self.ultimo_nodo != self.localizador.get_nodo():
+                        print "Siguiente nodo estimado: " + self.localizador.get_nodo() + ", nodo anterior: " + self.ultimo_nodo
 
+                        # Compruebo si el robot se ha movido a la siguiente casilla de la ruta
+                        # planificada.
+                        siguiente_nodo = self.localizador.get_nodo()
+                        if siguiente_nodo == self.get_ruta().siguiente_estado().get_nodo():
+                                # Avanzamos al siguiente nodo
+                                self.ultimo_nodo = siguiente_nodo
+                                self.get_ruta().avanzar()
+
+                                # Reseteamos el localizador 
+                                self.localizador.close()
+                                self.localizador = gps(self.get_ruta().estado_actual().get_nodo(), self.get_ruta().siguiente_estado().get_orientacion())
+                                
+                                print 'Siguiente movimiento: ' + self.get_ruta().siguiente_movimiento()
+                        else:
+                                # Nos hemos desviado de la ruta planificada.
+                                # Recalcular en base a la posición actual.
+                                self.recalcular_ruta()
+                        self.cambiar_estado(self.inicio)
+	
+
+                else:
+                        move()
         
-	# Estado final
-	def final(self, *args):
-		# Desactivar algoritmo de localización.
-		pass

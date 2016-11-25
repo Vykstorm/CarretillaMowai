@@ -59,7 +59,7 @@ class gps:
 	# (Cuya casilla tenga más probabilidad).
 	def get_nodo(self):
 		pos = self.get_pos()
-		return 'X' + str(pos[0]) + str(pos[1])
+		return 'X' + str(pos[0]+1) + str(pos[1]+1)
 	
 	
 	# Este método inicializa la matriz de probabilidades.		
