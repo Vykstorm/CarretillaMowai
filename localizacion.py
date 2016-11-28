@@ -9,7 +9,7 @@ from thread import start_new_thread
 from threading import Condition
 from time import sleep
 
-from sensores import get_sensores_discretizados, get_dist_recorrida
+from sensores import get_sensores, get_sensores_discretizados, get_dist_recorrida
 from probs import *
 from mapa import colores, nodos_centro
 
@@ -99,8 +99,21 @@ F = {'norte':F_norte, 'sur':F_sur, 'este':F_este, 'oeste':F_oeste}
 
 
 
+# Estas variables booleanas activan/desactivan el uso de una variable observable del robot para
+# su localización
+LOCALIZATION_USE_LATERAL_SENSORS = False
+LOCALIZATION_USE_FRONTAL_SENSORS = True
+LOCALIZATION_USE_DISTANCE = True
+LOCALIZATION_USE_COLOR = True
 
-POSITION_UPDATE_TIME = .2
+# Estas variables son parámetrso que indican la importancia que se le da a
+# cada variable para estimar la posición del robot.
+LOCALIZATION_DISTANCE_FACTOR = 1
+LOCALIZATION_LATERAL_SENSORS_FACTOR = 1
+LOCALIZATION_FRONTAL_SENSORS_FACTOR = 1
+LOCALIZATION_COLOR_FACTOR = 1
+
+LOCALIZATION_UPDATE_TIME = .1
 
 # Con esta clase podremos estimar la posición del robot en el tablero.
 class gps:
@@ -172,19 +185,21 @@ class gps:
 		dc = (dc >= 1)
 		il = (il >= 1)
 		dl = (dl >= 1)
+
 		
 		# Obtenemos la distancia recorrida
 		d = get_dist_recorrida() - self.dist
-
+		
+		
 		# Calcular las probabilidades condicionadas... P(vB | X11), P(vB | X12), ... 
 		# o si el color observado es negro... P(vN | X11), P(vN | X12), ...
 		
 		if not c: # Color observado es blanco.
 			# P(vB | X blanco) = 0.95 y P(vB | X negro) = 0.3
-			cp = colores.map(lambda x,i,j:1 if x == 0 else 0.2)
+			cp = colores.map(lambda x,i,j:.95 if x == 0 else 0.3)
 		else:	# Color observado es negro
 			# P(vN | X blanco) = 0.05 y P(vN | X negro) = 0.7
-			cp = colores.map(lambda x,i,j:0 if x == 0 else 0.9)
+			cp = colores.map(lambda x,i,j:.05 if x == 0 else 0.7)
 
 		# Calculamos las probabilidades condicionales P(a<=d<=a+1 | X11, X0, O=N), P(a<=d<=a+1 | X12, X0, O=N), ...
 		# Estas probabilidades son: probabilidad de que la distancia estimada recorrida desde el punto inicial, sabiendo
@@ -199,13 +214,13 @@ class gps:
 		# Tendremos también en cuenta la orientación del robot...
 		# P(a<=d<=a+1 | X11, X0, O=N/S/E/W)
 		if orientacion == 'sur':
-			dp = dp.map(lambda x,i,j:x if (j == pos[1]) and (i >= pos[0]) else 0.05)
+			dp = dp.map(lambda x,i,j:x if (j == pos[1]) and (i >= pos[0]) else 0.1)
 		elif orientacion == 'norte':
-			dp = dp.map(lambda x,i,j:x if (j == pos[1]) and (i <= pos[0]) else 0.05)
+			dp = dp.map(lambda x,i,j:x if (j == pos[1]) and (i <= pos[0]) else 0.1)
 		elif orientacion == 'este':
-			dp = dp.map(lambda x,i,j:x if (j >= pos[1]) and (i == pos[0]) else 0.05)
+			dp = dp.map(lambda x,i,j:x if (j >= pos[1]) and (i == pos[0]) else 0.1)
 		elif orientacion == 'oeste':
-			dp = dp.map(lambda x,i,j:x if (j <= pos[1]) and (i == pos[0]) else 0.05)
+			dp = dp.map(lambda x,i,j:x if (j <= pos[1]) and (i == pos[0]) else 0.1)
 			
 		# Calculamos las probabilidades condicionales P(LI alto | X11), P(LI alto | X12), ...
 		# Si el sensor izquierdo tiene un valor alto, P(L1 no alto | X11), P(LI no alto | X12), ... en caso contrario
@@ -221,14 +236,41 @@ class gps:
 		Fp = F[orientacion]
 		if (not ic) or (not dc):
 			Fp = Fp.map(lambda x,i,j:1-x) 
-			
+
+
+                # Modificar las probabilidades condicionadas en base a la importancia que se le da
+                # a cada variable con la que estimamos cada posición.
+                k = LOCALIZATION_DISTANCE_FACTOR
+                dp = dp.map(lambda x,i,j:x*k +abs(.5 - x)*(1-k))
+                k = LOCALIZATION_LATERAL_SENSORS_FACTOR
+                ILp = ILp.map(lambda x,i,j:x*k +abs(.5 - x)*(1-k))
+                k = LOCALIZATION_LATERAL_SENSORS_FACTOR
+                DLp = DLp.map(lambda x,i,j:x*k +abs(.5 - x)*(1-k))
+                k = LOCALIZATION_FRONTAL_SENSORS_FACTOR
+                Fp = Fp.map(lambda x,i,j:x*k +abs(.5 - x)*(1-k))
+                k = LOCALIZATION_COLOR_FACTOR
+                cp = cp.map(lambda x,i,j:x*k +abs(.5 - x)*(1-k))
+
 		
 		# Tenemos varias probabilidades condicionales.. P(V1 | X11), P(V2 | X11), ...  
 		# Donde V1, V2, .. son nuestras variables observables
 		# Nos interesa calcular P(X11 | V1 ^ V2 ^ .. ^ Vn). 
 		# Podemos calcular P(V1 ^ V2 ^ ... ^ VN | X11) = P(V1 | X11) * P(V2 | X11) * ...
 		# Porque las variables observables las consideramos independientes entre sí.
-		pInv = map(lambda *args:reduce(lambda x,y:x*y, args), cp, dp, ILp, DLp, Fp)
+                V = []
+                if LOCALIZATION_USE_DISTANCE:
+                        V.append(dp)
+                if LOCALIZATION_USE_COLOR:
+                        V.append(cp)
+                if LOCALIZATION_USE_FRONTAL_SENSORS:
+                        V.append(Fp)
+                if LOCALIZATION_USE_LATERAL_SENSORS:
+                        V.append(ILp)
+                        V.append(DLp)
+
+
+		
+		pInv = map(lambda *args:reduce(lambda x,y:x*y, args), *V)
 		
 		# Probabilidades a priori de las casillas..
 		# P(X11), P(X12), ...
@@ -238,13 +280,13 @@ class gps:
 		# Calculamos P(X11 | V1^V2^...^Vn), P(X12 | V1^V2^...^Vn), ...
 		self.probs = mat(3,3)
 		self.probs.from_list(bayes(pInv, pPriori))
-		
+
 	def run(self):
 		self.lock.acquire()
 		while self.alive:
 			with self.update_lock:
 				self.actualizar_probs() 
-			self.lock.wait(POSITION_UPDATE_TIME)
+			self.lock.wait(LOCALIZATION_UPDATE_TIME)
 	
 	def __str__(self):
 		return self.get_nodo().__str__()
