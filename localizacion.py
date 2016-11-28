@@ -27,50 +27,50 @@ from mapa import colores, nodos_centro
 # del robot.
 # P(LI = 1 | X11, N), P(LI = I | X12, N)
 
-LI_norte = mat(3,3)
-LI_norte[0] = [.9, .5, .5]
-LI_norte[1] = [.5, .05, .05]
-LI_norte[2] = [.9, .05, .05]
+IL_norte = mat(3,3)
+IL_norte[0] = [.9, .5, .5]
+IL_norte[1] = [.5, .05, .05]
+IL_norte[2] = [.9, .05, .05]
 
-LI_sur = mat(3,3)
-LI_sur[0] = [.05, .05, .9]
-LI_sur[1] = [.05, .05, .9]
-LI_sur[2] = [.5, .5, .9] 
+IL_sur = mat(3,3)
+IL_sur[0] = [.05, .05, .9]
+IL_sur[1] = [.05, .05, .9]
+IL_sur[2] = [.5, .5, .9] 
 
-LI_este = mat(3,3)
-LI_este[0] = [.9, .5, .9]
-LI_este[1] = [.05, .05, .9]
-LI_este[2] = [.05, .05, .9]
+IL_este = mat(3,3)
+IL_este[0] = [.9, .5, .9]
+IL_este[1] = [.05, .05, .9]
+IL_este[2] = [.05, .05, .9]
 
-LI_oeste = mat(3,3)
-LI_oeste[0] = [.5, .05, .05]
-LI_oeste[1] = [.5, .05, .05]
-LI_oeste[2] = [.9, .5, .9]
+IL_oeste = mat(3,3)
+IL_oeste[0] = [.5, .05, .05]
+IL_oeste[1] = [.5, .05, .05]
+IL_oeste[2] = [.9, .5, .9]
 
-LI = {'norte':LI_norte, 'sur':LI_sur, 'este':LI_este, 'oeste':LI_oeste}
+IL = {'norte':IL_norte, 'sur':IL_sur, 'este':IL_este, 'oeste':IL_oeste}
 
-LD_norte = mat(3,3)
-LD_norte[0] = [.5, .5, .9]
-LD_norte[1] = [.05, .05, .9]
-LD_norte[2] = [.05, .05, .9]
+DL_norte = mat(3,3)
+DL_norte[0] = [.5, .5, .9]
+DL_norte[1] = [.05, .05, .9]
+DL_norte[2] = [.05, .05, .9]
 
-LD_sur = mat(3,3)
-LD_sur[0] = [.5, .05, .05]
-LD_sur[1] = [.5, .05, .05]
-LD_sur[2] = [.9, .5, .5]
+DL_sur = mat(3,3)
+DL_sur[0] = [.5, .05, .05]
+DL_sur[1] = [.5, .05, .05]
+DL_sur[2] = [.9, .5, .5]
 
-LD_este = mat(3,3)
-LD_este[0] = [.05, .05, .9]
-LD_este[1] = [.05, .05, .9]
-LD_este[2] = [.9, .5, .9]
+DL_este = mat(3,3)
+DL_este[0] = [.05, .05, .9]
+DL_este[1] = [.05, .05, .9]
+DL_este[2] = [.9, .5, .9]
 
 
-LD_oeste = mat(3,3)
-LD_oeste[0] = [.9, .5, .9]
-LD_oeste[1] = [.5, .05, .05]
-LD_oeste[2] = [.5, .05, .05]
+DL_oeste = mat(3,3)
+DL_oeste[0] = [.9, .5, .9]
+DL_oeste[1] = [.5, .05, .05]
+DL_oeste[2] = [.5, .05, .05]
  
-LD = {'norte':LD_norte, 'sur':LD_sur, 'este':LD_este, 'oeste':LD_oeste}
+DL = {'norte':DL_norte, 'sur':DL_sur, 'este':DL_este, 'oeste':DL_oeste}
 
 F_norte = mat(3,3)
 F_norte[0] = [.9, .05, .9]
@@ -109,7 +109,7 @@ class gps:
 	# 'sur').
 	def __init__(self, nodo, orientacion):
 		grid = mat(3,3)
-		fila, col = int(nodo[1]),int(nodo[2])
+		fila, col = int(nodo[1])-1,int(nodo[2])-1
 		pos = [fila, col]
 		if (pos[0] < 0) or (pos[0] >= grid.get_width()) or (pos[1] < 0) or (pos[1] >= grid.get_height()):
 			raise IndexError()
@@ -144,29 +144,33 @@ class gps:
 	# (Cuya casilla tenga más probabilidad).
 	def get_nodo(self):
 		pos = self.get_pos()
-		return 'X' + str(pos[0]) + str(pos[1])
+		return 'X' + str(pos[0]+1) + str(pos[1]+1)
 	
 	
 	# Este método inicializa la matriz de probabilidades.		
 	def inicializar_probs(self):
-		self.probs = mat(3,3)
-		self.probs[self.initial_pos[0],self.initial_pos[1]] = 1
+		self.actualizar_probs()
 	
 	# Este método es invocado cada cierto intervalo de tiempo, para estimar la posición
 	# actual del robot (estima las probabilidades de estar en cada una de las casillas)
 	def actualizar_probs(self):
-		# Tenemos dos variables no observables en nuestro modelo, que son, la distancia recorrida
-		# aproximada (d) y el color (c)
-		# Y una variable no observable que es la distancia real recorrida (d') desde que se inicio el 
-		# último movimiento
+		# Tenemos variables variables observables en nuestro modelo, que son, la distancia recorrida
+		# aproximada (d), el color (c), los sensores LI, LD, F, el punto de partida X0 del robot y su 
+		# orientación O = {N,S,E,W} 
+		# Y una variable no observable que es la casilla del tablero donde se encuentra el robot 
+		# X
 		
-		n, m = self.probs.get_size()
+		n, m = [3, 3]
 		pos = self.initial_pos
 		orientacion = self.orientacion
 		
 		# Obtenemos el color 
 		ic, il, dc, dl, c = get_sensores_discretizados()
 		c = (c >= 2)
+		ic = (ic >= 1)
+		dc = (dc >= 1)
+		il = (il >= 1)
+		dl = (dl >= 1)
 		
 		# Obtenemos la distancia recorrida
 		d = get_dist_recorrida() - self.dist
@@ -181,50 +185,59 @@ class gps:
 			# P(vN | X blanco) = 0.05 y P(vN | X negro) = 0.7
 			cp = colores.map(lambda x,i,j:0.05 if x == 0 else 0.7)
 
-		# Calculamos las probabilidades condicionadas... P(X11 | vB), V(X12 | vB), ...
-		# o P(X11 | vN), P(X12 | vN), ...
-		# Usando el teorema de bayes sin información a priori.
-		cpPost = mat(n,m)
-		cpPost.from_list(bayes(cp.to_list(), [1] * (n*m)))
-		
-		# Calculamos las probabilidades condicionales P(a<=d<=a+1 | X11), P(a<=d<=a+1 | X12), ...
-		# Estas probabilidades son: probabilidad de que la distancia estimada esté entre dos
-		# valores condicionado con que estoy en la casilla X, o lo que es lo mismo ->
-		# P(a<=d<=a+1 | X) = P(a<=d<=a+1 | b<=d'<=b+1) con a y b enteros.
-		# P(a<=d<=a+1 | b<=d'<=b+1) = (1-k)^|a-b| si a != b o k si a = b
+		# Calculamos las probabilidades condicionales P(a<=d<=a+1 | X11, X0, O=N), P(a<=d<=a+1 | X12, X0, O=N), ...
+		# Estas probabilidades son: probabilidad de que la distancia estimada recorrida desde el punto inicial, sabiendo
+		# que hemos llegado hasta la casilla X11, X12,... está en el rango [a,a+1]
+		# Puede expresarse de la siguiente forma: Si d' es una variable observable que indica la distancia real recorrida desde
+		# el punto inicial X0..
+		# P(a<=d<=a+1 | X11, X0) = P(a<=d<=a+1 | b<=d'<=b+1) = (1-k)^|a-b| si a != b o k si a = b
 		a = int(d)
 		dp = mat(n,m).map(lambda x,i,j:abs(pos[0]-i)+abs(pos[1]-j))
 		dp = dp.map(lambda b,i,j:0.8 if a==b else pow(1-0.8,abs(a-b)))
-		self.probs = dp
-
-		# Calculamos las probabilidades a priori... P(X11), P(X12), ...
-		# En base a la orientación y a la posición inicial del robot. Si el movimiento es
-		# por ejemplo de norte a sur y la posición inicial es (x,y)
-		# Las probabilidades a priori de las casillas (x,y), (x,y+1), ... serán 1, el resto 
-		# serán 0.
+	
+		# Tendremos también en cuenta la orientación del robot...
+		# P(a<=d<=a+1 | X11, X0, O=N/S/E/W)
 		if orientacion == 'sur':
-			dpPriori = mat(n,m).map(lambda x,i,j:1 if (j == pos[1]) and (i >= pos[0]) else 0)
+			dp = dp.map(lambda x,i,j:x if (j == pos[1]) and (i >= pos[0]) else 0.05)
 		elif orientacion == 'norte':
-			dpPriori = mat(n,m).map(lambda x,i,j:1 if (j == pos[1]) and (i <= pos[0]) else 0)
+			dp = dp.map(lambda x,i,j:x if (j == pos[1]) and (i <= pos[0]) else 0.05)
 		elif orientacion == 'este':
-			dpPriori = mat(n,m).map(lambda x,i,j:1 if (j >= pos[1]) and (i == pos[0]) else 0)
+			dp = dp.map(lambda x,i,j:x if (j >= pos[1]) and (i == pos[0]) else 0.05)
 		elif orientacion == 'oeste':
-			dpPriori = mat(n,m).map(lambda x,i,j:1 if (j <= pos[1]) and (i == pos[0]) else 0)
+			dp = dp.map(lambda x,i,j:x if (j <= pos[1]) and (i == pos[0]) else 0.05)
 			
-		# Calculamos las probs a posteriori... P(X11 | a<=d<=a+1), P(X12 | a<=d<=a+1), ...
-		dpPost = mat(n,m)
-		dpPost.from_list(bayes(dp.to_list(), dpPriori.to_list()))
+		# Calculamos las probabilidades condicionales P(LI alto | X11), P(LI alto | X12), ...
+		# Si el sensor izquierdo tiene un valor alto, P(L1 no alto | X11), P(LI no alto | X12), ... en caso contrario
+		ILp = IL[orientacion]
+		if not il:
+			ILp = ILp.map(lambda x,i,j:1-x)
+			
+		# Hacemos lo mismo para el sensor lateral derecho y los frontales...
+		DLp = DL[orientacion]
+		if not dl:
+			DLp = DLp.map(lambda x,i,j:1-x)
+		
+		Fp = F[orientacion]
+		if (not ic) or (not dc):
+			Fp = Fp.map(lambda x,i,j:1-x) 
 			
 		
-		# Finalmente calculamos P(X11 | a<=d<=a+1, vB)
-		# Como las variables observables son independientes, podemos calcular estas probabilidades
-		# como un producto de probabilidades condicionales:
-		# P(X11 | a<=d<=a+1, vB) = P(X11 | a<=d<=a+1) * P(X11 | vB) 
-		self.probs.from_list(map(lambda *args:reduce(lambda x,y:x*y, args, 1), cpPost.to_list(), dpPost.to_list()))
-			
-		# Normalizamos las probabilidades
-		s = sum(self.probs.to_list())
-		self.probs = self.probs.map(lambda x,i,j:x/s)
+		# Tenemos varias probabilidades condicionales.. P(V1 | X11), P(V2 | X11), ...  
+		# Donde V1, V2, .. son nuestras variables observables
+		# Nos interesa calcular P(X11 | V1 ^ V2 ^ .. ^ Vn). 
+		# Podemos calcular P(V1 ^ V2 ^ ... ^ VN | X11) = P(V1 | X11) * P(V2 | X11) * ...
+		# Porque las variables observables las consideramos independientes entre sí.
+		pInv = map(lambda *args:reduce(lambda x,y:x*y, args), cp, dp, ILp, DLp, Fp)
+		
+		# Probabilidades a priori de las casillas..
+		# P(X11), P(X12), ...
+		# No tenemos información a priori
+		pPriori = [1.0/(n*m)] * (n*m)
+		
+		# Calculamos P(X11 | V1^V2^...^Vn), P(X12 | V1^V2^...^Vn), ...
+		self.probs = mat(3,3)
+		self.probs.from_list(bayes(pInv, pPriori))
+		
 	def run(self):
 		self.lock.acquire()
 		while self.alive:
@@ -233,10 +246,10 @@ class gps:
 			self.lock.wait(POSITION_UPDATE_TIME)
 	
 	def __str__(self):
-		return self.get_pos().__str__()
+		return self.get_nodo().__str__()
 		
 	def __repr__(self):
-		return self.get_pos().__repr__()
+		return self.get_nodo().__repr__()
 	
 	# Destructor: Se invoca cuando ya no es necesario estimar la posición del robot.
 	# (libera recursos) 
