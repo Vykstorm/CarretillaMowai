@@ -12,7 +12,7 @@ from time import sleep
 
 
 # Configuración de los motores.
-ROBOT_FORWARD_SPEED = 15 # Velocidad de movimiento del robot
+ROBOT_FORWARD_SPEED = 5 # Velocidad de movimiento del robot
 ROBOT_ROTATION_SPEED = 5 # Velocidad de giro estático del robot 
 ROBOT_ROTATION_AXIS = CENTER # Eje de giro del robot (CENTER o WHEEL)
 ROBOT_ROTATION_MAX_ANGLE = 4 # Angulo máximo de giro.
