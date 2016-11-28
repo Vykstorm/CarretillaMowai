@@ -288,6 +288,7 @@ class robot_centro(DTE):
 
                 # Hemos cambiado de nodo?
                 if nodo_actual != self.get_ruta().estado_actual().get_nodo():
+                        print nodo_actual
                         # Avanzar a la siguiente casilla
                         self.get_ruta().avanzar()
 
@@ -310,12 +311,18 @@ class robot_centro(DTE):
                         girar90('right')
                 elif movimiento == 'forward':
                         pass
+
                 self.cambiar_estado(self.transicion)
 
         # Estado mover hacia fuera (Comenzamos a movernos al siguiente nodo fuera de la zona neutral)
         def transicion(self, nodo, ic, il, dc, dl, color, *args):
                 if color == 2:
-                        move()
+                        if (dc == 2) or (dl == 2):
+                                girar('left')
+                        elif (ic == 2) or (il == 2):
+                                girar('right')
+                        else:
+                                move()
                 else:
                         self.cambiar_estado(self.salir)
 
@@ -324,4 +331,9 @@ class robot_centro(DTE):
                 if color == 2:
                         self.cambiar_estado(self.fin)
                 else:
-                        move()
+                        if (dc == 2) or (dl == 2):
+                                girar('left')
+                        elif (ic == 2) or (il == 2):
+                                girar('right')
+                        else:
+                                move()
