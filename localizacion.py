@@ -100,7 +100,7 @@ F = {'norte':F_norte, 'sur':F_sur, 'este':F_este, 'oeste':F_oeste}
 
 
 
-POSITION_UPDATE_TIME = 1
+POSITION_UPDATE_TIME = .2
 
 # Con esta clase podremos estimar la posición del robot en el tablero.
 class gps:
@@ -117,10 +117,11 @@ class gps:
 		self.dist = get_dist_recorrida()
 		self.initial_pos = pos
 			
-		self.inicializar_probs()
 		self.alive = True
 		self.update_lock = Condition()
 		self.lock = Condition()
+		
+		self.inicializar_probs()
 		start_new_thread(self.run, ())
 
 	# Este método devuelve una matriz de probabilidades.
@@ -180,10 +181,10 @@ class gps:
 		
 		if not c: # Color observado es blanco.
 			# P(vB | X blanco) = 0.95 y P(vB | X negro) = 0.3
-			cp = colores.map(lambda x,i,j:0.95 if x == 0 else 0.3)
+			cp = colores.map(lambda x,i,j:1 if x == 0 else 0.2)
 		else:	# Color observado es negro
 			# P(vN | X blanco) = 0.05 y P(vN | X negro) = 0.7
-			cp = colores.map(lambda x,i,j:0.05 if x == 0 else 0.7)
+			cp = colores.map(lambda x,i,j:0 if x == 0 else 0.9)
 
 		# Calculamos las probabilidades condicionales P(a<=d<=a+1 | X11, X0, O=N), P(a<=d<=a+1 | X12, X0, O=N), ...
 		# Estas probabilidades son: probabilidad de que la distancia estimada recorrida desde el punto inicial, sabiendo
