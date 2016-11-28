@@ -112,7 +112,20 @@ class girar90_der(accion):
 		moway.command_moway(CMD_ROTATERIGHT,0)
 		#self.lock.wait()
                 moway.wait_mot_end(0)
-		moway.command_moway(CMD_STOP,0)		
+		moway.command_moway(CMD_STOP,0)
+
+class _girar180(accion):
+        def __init__(self, lock):
+                accion.__init__(self, lock)
+        def ejecutar(self):
+		# Ejecutamos los comandos para girar 180º
+		#moway.set_rotation(180)
+		moway.set_rotation_axis(ROBOT_ROTATION_AXIS)
+		moway.set_speed(ROBOT_ROTATION_SPEED)
+		moway.command_moway(CMD_TURN_AROUND,0)
+		#self.lock.wait()
+                moway.wait_mot_end(0)
+		moway.command_moway(CMD_STOP,0)
 
 lock = Condition()
 
@@ -149,6 +162,17 @@ def girar90(sentido):
 		elif (sentido == 'right') and not isinstance(accion_actual, girar90_der):
                         accion_actual = girar90_der(lock)
                         accion_actual.ejecutar()
+                        
+# Este método hará que el robot gire 180º.
+def girar180():
+	global accion_actual
+	with lock:
+		if not isinstance(accion_actual, _girar180):
+			accion_actual = _girar180(lock)
+			accion_actual.ejecutar() 
+        
+
+                        
 # Este método hara que el robot comienza a moverse hacia delante.
 def move():
 	global accion_actual

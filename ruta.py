@@ -46,6 +46,7 @@ class ruta:
 	# Constructor. Se le indica los estados del robot por los que debe pasar
 	# para recorrer el camino marcado por la ruta.
 	def __init__(self, estados):
+                self.inicio = estados[0]
 		self.estados = deque(estados)
 		self.movimientos = deque(self.calcular_movimientos(estados))
 	
@@ -71,15 +72,17 @@ class ruta:
 	# consume el siguiente movimiento de la ruta. Devuelve false si ya se había llegado
 	# el destino, true en caso contrario
 	def avanzar(self):
-		if len(self.movimientos) == 0:
-			return False
 		self.movimientos.popleft()
 		self.estados.popleft()
-		return True
+		return (len(self.movimientos) > 0)
 		
 	# Este método devuelve el primer estado de la ruta.
 	def estado_actual(self):
 		return self.estados[0]
+
+        # Este método devuelve el estado inicial del que partio la ruta.
+        def estado_inicial(self):
+                return self.inicio
 		
 	# Este método devuelve el estado final de la ruta.
 	def estado_final(self):

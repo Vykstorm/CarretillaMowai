@@ -132,6 +132,9 @@ class grafo_obstaculos(grafo):
 		return grafo.is_fully_connected(self, A,B)
 
 obstaculos = grafo_obstaculos(nodos)
+#obstaculos.block('N1', 'X32')
+#obstaculos.block('N2', 'X21')
+#obstaculos.block('N4', 'X12')
 
 
 # El siguiente gráfo puede usarse para conocer la vecindad de cada nodo.

@@ -29,12 +29,15 @@ else:
 # Comenzamos a ejecutar el código para mover el robot...
 			
 try:
-	# Creamos una ruta que deba seguir el robot.
-	R = ruta(['left', 'right', 'forward', 'left', 'right', 'forward', 'right']) 
-	
-	# Comenzamos a mover el robot
-	robot(R).ejecutar()
-	print 'Movimiento del robot finalizado'
+        # Nodo y orientación inicial del robot
+        inicio = 'N1'
+        orientacion = 'norte'
+        # Nodo destino del robot
+        fin = 'B'
+
+        # Comenzamos a mover el robot
+        robot(inicio, fin, orientacion).ejecutar()
+        print 'Movimiento del robot finalizado'
 except KeyboardInterrupt:
 	print 'Interrupción del teclado. Finalizando'
 finally:
