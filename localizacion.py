@@ -14,6 +14,91 @@ from probs import *
 from mapa import colores, nodos_centro
 
 
+#########################################################
+# Las siguientes matrices definen probabilidades condicionales en el centro
+# del tablero.
+# Tenemos varias variables observables: LI, LD, F
+# LI = 1 si el sensor lateral izquierdo es alto, 0 en caso contrario
+# LD = 1 si el sensor lateral derecho es alto, 0 en caso contrario
+# F = 1 si ambos sensores frontales dan valores altos, 0 en caso contrario
+
+# La siguiente matriz define las probabilidades de que LI = 1 condicionado
+# con que estemos en cada una de las casillas X11,X12, ... y con la orientación
+# del robot.
+# P(LI = 1 | X11, N), P(LI = I | X12, N)
+
+LI_norte = mat(3,3)
+LI_norte[0] = [.9, .5, .5]
+LI_norte[1] = [.5, .05, .05]
+LI_norte[2] = [.9, .05, .05]
+
+LI_sur = mat(3,3)
+LI_sur[0] = [.05, .05, .9]
+LI_sur[1] = [.05, .05, .9]
+LI_sur[2] = [.5, .5, .9] 
+
+LI_este = mat(3,3)
+LI_este[0] = [.9, .5, .9]
+LI_este[1] = [.05, .05, .9]
+LI_este[2] = [.05, .05, .9]
+
+LI_oeste = mat(3,3)
+LI_oeste[0] = [.5, .05, .05]
+LI_oeste[1] = [.5, .05, .05]
+LI_oeste[2] = [.9, .5, .9]
+
+LI = {'norte':LI_norte, 'sur':LI_sur, 'este':LI_este, 'oeste':LI_oeste}
+
+LD_norte = mat(3,3)
+LD_norte[0] = [.5, .5, .9]
+LD_norte[1] = [.05, .05, .9]
+LD_norte[2] = [.05, .05, .9]
+
+LD_sur = mat(3,3)
+LD_sur[0] = [.5, .05, .05]
+LD_sur[1] = [.5, .05, .05]
+LD_sur[2] = [.9, .5, .5]
+
+LD_este = mat(3,3)
+LD_este[0] = [.05, .05, .9]
+LD_este[1] = [.05, .05, .9]
+LD_este[2] = [.9, .5, .9]
+
+
+LD_oeste = mat(3,3)
+LD_oeste[0] = [.9, .5, .9]
+LD_oeste[1] = [.5, .05, .05]
+LD_oeste[2] = [.5, .05, .05]
+ 
+LD = {'norte':LD_norte, 'sur':LD_sur, 'este':LD_este, 'oeste':LD_oeste}
+
+F_norte = mat(3,3)
+F_norte[0] = [.9, .05, .9]
+F_norte[1] = [.05, .05, .05]
+F_norte[2] = [.05, .05, .05]
+
+F_sur = mat(3,3)
+F_sur[0] = F_norte[2]
+F_sur[1] = F_norte[1]
+F_sur[2] = F_norte[0]
+
+F_este = mat(3,3)
+F_este[0] = [.05, .05, .9]
+F_este[1] = [.05, .05, .9]
+F_este[2] = [.05, .05, .9]
+
+F_oeste = mat(3,3)
+F_oeste[0] = [.9, .05, .05]
+F_oeste[1] = [.05, .05, .05]
+F_oeste[2] = [.9, .05, .05]
+
+F = {'norte':F_norte, 'sur':F_sur, 'este':F_este, 'oeste':F_oeste}
+
+#########################################################
+
+
+
+
 
 POSITION_UPDATE_TIME = 1
 
