@@ -125,8 +125,6 @@ class robot(DTE):
 			self.cambiar_estado(self.interseccion)
 		elif (ic == 0) and (dc == 0):
 			self.cambiar_estado(self.pasillo)
-		elif (ic == 0) and (dc == 0):
-			self.cambiar_estado(self.pasillo)
 		elif ((ic == 2) and (dc == 2)) and (il == 2) and (dl == 2):
                         self.cambiar_estado(self.pasillo_bloqueado)
 		else:
@@ -180,14 +178,14 @@ class robot(DTE):
 	def pasillo_vuelta(self, ic, il, dc, dl, color, _ic, _il, _dc, _dl, *args):
 		if color == 2: 
 			self.cambiar_estado(self.inicio)
-		if (ic >= 1) and (dc >= 1):
-                        if (ic == 2) and (dc == 2):
+		elif (ic >= 1) and (dc >= 1):
+                        if ((ic == 2) or (dc == 2)) and (il >= 1) and (dl >= 1):
                                 self.cambiar_estado(self.pasillo_bloqueado)
                         if (dl >= 1) and (il == 0):
-                                self.cambiar_estado(self.esquina_izq)
-                        elif (il >= 1) and (dl == 0):
-                                self.cambiar_estado(self.esquina_der)
-		else: 
+                                self.cambiar_estado(self.esquina_izq_vuelta)
+                        elif (dl == 0) and (il >= 1):
+                                self.cambiar_estado(self.esquina_der_vuelta)
+		else:
 			if (ic == 2) or (il == 2):
 				girar('right')
 			elif (dc == 2) or (dl == 2):
@@ -195,6 +193,35 @@ class robot(DTE):
 			else:
 				move()
 
+
+	# Estado esquina izquierda de 
+	def esquina_izq_vuelta(self, ic, il, dc, dl, color, *args):
+		if color == 2:
+			self.cambiar_estado(self.inicio)
+		elif (ic == 0) and (dc == 0):
+			self.cambiar_estado(self.pasillo_vuelta)
+		elif ((ic == 2) and (dc == 2)) and (il == 2) and (dl == 2):
+                        self.cambiar_estado(self.pasillo_bloqueado)
+		else:
+			if (ic == 2) or (dc == 2):
+				girar('left')
+			else:
+				move()
+				
+	# Estado esquina derecha
+	def esquina_der_vuelta(self, ic, il, dc, dl, color, *args):
+		if color == 2:
+			self.cambiar_estado(self.inicio)
+		elif (ic == 0) and (dc == 0):
+			self.cambiar_estado(self.pasillo_vuelta)
+		elif ((ic == 2) and (dc == 2)) and (il == 2) and (dl == 2):
+                        self.cambiar_estado(self.pasillo_bloqueado)
+		else:
+			if (ic == 2) or (dc == 2):
+				girar('right')
+			else:
+				move()
+				
 
 
 # La instancia de esta clase modelará el comportamiento del robot moway como una máquina de estados
