@@ -91,7 +91,7 @@ class girar90_izq(accion):
                 accion.__init__(self, lock)
         def ejecutar(self):
 		# Ejecutamos los comandos para girar 90º a la izq
-		sleep(.5)
+		sleep(.4)
 		moway.set_rotation(90)
 		moway.set_rotation_axis(ROBOT_ROTATION_AXIS)
 		moway.set_speed(ROBOT_ROTATION_SPEED)
@@ -105,7 +105,7 @@ class girar90_der(accion):
                 accion.__init__(self, lock)
         def ejecutar(self):
 		# Ejecutamos los comandos para girar 90º a la der
-		sleep(.5)
+		sleep(.4)
 		moway.set_rotation(90)
 		moway.set_rotation_axis(ROBOT_ROTATION_AXIS)
 		moway.set_speed(ROBOT_ROTATION_SPEED)
